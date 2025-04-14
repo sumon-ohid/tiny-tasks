@@ -13,6 +13,7 @@ import type { DragEndEvent } from '@/components/ui/kibo-ui/kanban';
 import { exampleStatuses } from '@/lib/content';
 import { LoginModal } from '@/components/ui/kibo-ui/login-modal';
 import { UserProfile } from '@/components/ui/kibo-ui/user-profile';
+import { Nav } from '@/components/ui/kibo-ui/nav';
 import { TaskModal } from '@/components/ui/kibo-ui/task-modal';
 import { TaskDetail } from '@/components/ui/kibo-ui/task-detail';
 import { AvatarStack } from '@/components/ui/kibo-ui/avatar-stack';
@@ -158,16 +159,16 @@ const Home = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header with user profile and action buttons */}
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b gap-4">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b gap-4 bg-background">
         <div>
-          <h1 className="text-xl font-bold">Personal Kanban Board</h1>
+          <h1 className="text-xl font-bold">Tiny Tasks</h1>
           <div className="flex items-center mt-2">
-            <span className="text-sm text-muted-foreground mr-2">Active users:</span>
-            <AvatarStack users={activeUsers} limit={5} />
           </div>
         </div>
+
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+        <Nav />
           <div className="relative w-full sm:w-64">
             <input
               type="text"

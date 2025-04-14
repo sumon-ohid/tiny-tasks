@@ -25,6 +25,15 @@ export interface Status {
 // Storage keys
 const USER_FEATURES_PREFIX = 'kanban-user-features-';
 
+// Storage keys for notes
+const USER_NOTES_KEY = 'kanban-user-notes';
+
+// Notes type
+export interface Notes {
+  content: any; // Using any for TipTap JSON content
+  lastUpdated: Date;
+}
+
 // Get features for a specific user
 export const getUserFeatures = (userId: string): Feature[] => {
   if (typeof window === 'undefined') return [];
@@ -84,6 +93,35 @@ export const updateUserFeature = (userId: string, updatedFeature: Feature): Feat
   );
   saveUserFeatures(userId, updatedFeatures);
   return updatedFeatures;
+};
+
+// Get user notes
+export const getUserNotes = (): Notes | null => {
+  if (typeof window === 'undefined') return null;
+  
+  const storedNotes = localStorage.getItem(USER_NOTES_KEY);
+  
+  if (!storedNotes) {
+    return null;
+  }
+  
+  const notes = JSON.parse(storedNotes);
+  return {
+    ...notes,
+    lastUpdated: new Date(notes.lastUpdated)
+  };
+};
+
+// Save user notes
+export const saveUserNotes = (content: any): void => {
+  if (typeof window === 'undefined') return;
+  
+  const notes: Notes = {
+    content,
+    lastUpdated: new Date()
+  };
+  
+  localStorage.setItem(USER_NOTES_KEY, JSON.stringify(notes));
 };
 
 // Generate a unique ID
