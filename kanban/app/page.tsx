@@ -69,7 +69,9 @@ const Home = () => {
       
       // Update active users for the demo - in a real app this would come from a backend
       if (!activeUsers.some(u => u.id === user.id)) {
-        setActiveUsers(prev => [...prev.filter(u => u.id !== user.id), user]);
+        if (user.image) {
+          setActiveUsers(prev => [...prev.filter(u => u.id !== user.id), user as { id: string; name: string; image: string }]);
+        }
       }
     }
   }, [user]);
@@ -137,7 +139,9 @@ const Home = () => {
 
   // Handle opening task edit
   const handleEditTask = () => {
-    setEditingTask(selectedTask);
+    if (selectedTask) {
+      setEditingTask(selectedTask);
+    }
     setIsTaskDetailOpen(false);
     setIsTaskModalOpen(true);
   };

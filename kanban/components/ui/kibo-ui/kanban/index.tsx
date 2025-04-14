@@ -55,6 +55,7 @@ export type KanbanCardProps = Pick<Feature, 'id' | 'name'> & {
   parent: string;
   children?: ReactNode;
   className?: string;
+  onClick?: () => void;
 };
 
 export const KanbanCard = ({
