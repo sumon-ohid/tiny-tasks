@@ -306,6 +306,16 @@ const CalendarPageContent = () => {
                                     alt=""
                                     width={16}
                                     height={16}
+                                    unoptimized
+                                    onError={(e) => {
+                                      const img = e.currentTarget;
+                                      if (task.emoji && !img.src.includes('&format=png')) {
+                                        img.src = `${task.emoji.url.split('?')[0]}?seed=${task.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
+                                      } else if (task.emoji) {
+                                        // If PNG also fails, use a fallback emoji
+                                        img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2310B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
+                                      }
+                                    }}
                                   />
                                 </div>
                               )}

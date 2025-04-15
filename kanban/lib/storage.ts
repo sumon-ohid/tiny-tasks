@@ -54,7 +54,7 @@ export const getUserFeatures = (userId: string): Feature[] => {
       endAt: new Date(feature.endAt),
       // Add default emoji for example features
       emoji: {
-        url: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${Math.floor(Math.random() * 100) + 1}`,
+        url: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${Math.floor(Math.random() * 100) + 1}&backgroundColor=transparent&radius=50`,
         style: 'fun-emoji', 
         seed: Math.floor(Math.random() * 100) + 1
       }

@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
-  swcMinify: true,
   images: {
     domains: ['api.dicebear.com'], // Allow Dicebear avatar images
     remotePatterns: [
@@ -13,6 +12,10 @@ const nextConfig: NextConfig = {
         pathname: '**',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   experimental: {
     optimizeCss: true,

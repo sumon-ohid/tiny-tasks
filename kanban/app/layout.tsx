@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/kibo-ui/theme-provider";
@@ -20,11 +20,16 @@ export const metadata: Metadata = {
   description: "A simple yet powerful Kanban board for task management with collaborative notes",
   keywords: ["kanban", "task management", "productivity", "notes", "collaboration"],
   authors: [{ name: "Tiny Tasks Team" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-  themeColor: "#10B981",
   icons: {
     icon: "/favicon.ico",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#10B981",
 };
 
 export default function RootLayout({

@@ -154,6 +154,16 @@ export const KanbanCard = ({
                   width={32}
                   height={32}
                   className="object-cover"
+                  unoptimized
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (!img.src.includes('&format=png')) {
+                      img.src = `${emoji.url.split('?')[0]}?seed=${emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
+                    } else {
+                      // If PNG also fails, use a fallback emoji
+                      img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2310B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
+                    }
+                  }}
                 />
               </div>
             </div>
