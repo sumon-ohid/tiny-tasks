@@ -14,6 +14,11 @@ export interface Feature {
   initiative?: { id: string; name: string };
   release?: { id: string; name: string };
   description?: string;
+  emoji?: {
+    url: string;
+    style: string;
+    seed: number;
+  };
 }
 
 export interface Status {
@@ -39,16 +44,22 @@ export const getUserFeatures = (userId: string): Feature[] => {
   if (typeof window === 'undefined') return [];
 
   const key = `${USER_FEATURES_PREFIX}${userId}`;
-  const storedFeatures = sessionStorage.getItem(key);
+  const storedFeatures = localStorage.getItem(key);
   
   if (!storedFeatures) {
     // Initialize with example features for demo purposes
     const initialFeatures = exampleFeatures.map(feature => ({
       ...feature,
       startAt: new Date(feature.startAt),
-      endAt: new Date(feature.endAt)
+      endAt: new Date(feature.endAt),
+      // Add default emoji for example features
+      emoji: {
+        url: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${Math.floor(Math.random() * 100) + 1}`,
+        style: 'fun-emoji', 
+        seed: Math.floor(Math.random() * 100) + 1
+      }
     }));
-    sessionStorage.setItem(key, JSON.stringify(initialFeatures));
+    localStorage.setItem(key, JSON.stringify(initialFeatures));
     return initialFeatures;
   }
 
@@ -66,7 +77,7 @@ export const saveUserFeatures = (userId: string, features: Feature[]): void => {
   if (typeof window === 'undefined') return;
   
   const key = `${USER_FEATURES_PREFIX}${userId}`;
-  sessionStorage.setItem(key, JSON.stringify(features));
+  localStorage.setItem(key, JSON.stringify(features));
 };
 
 // Add a new feature for a user

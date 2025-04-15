@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { Feature } from '@/lib/storage';
 import { format } from 'date-fns';
+import type { Feature } from '@/lib/storage';
+import Image from 'next/image';
 
 type TaskDetailProps = {
   task: Feature;
@@ -13,113 +16,255 @@ type TaskDetailProps = {
 };
 
 export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  
+  // Animation variants
+  const overlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.2 } }
+  };
+  
+  const modalVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 25, stiffness: 500 } }
+  };
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-lg p-6 bg-white shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold truncate">{task.name}</h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-muted"
-            aria-label="Close"
+    <motion.div 
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      variants={overlayVariants}
+      onClick={onClose}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      <motion.div 
+        onClick={e => e.stopPropagation()}
+        variants={modalVariants}
+        className="w-full max-w-2xl"
+      >
+        <Card className="p-0 shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div 
+            className="p-6 pb-4 border-b relative"
+            style={{ backgroundColor: `${task.status.color}10` }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
-              <p className="text-sm">
-                {task.description || "No description provided."}
-              </p>
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button 
+                className="p-2 rounded-full hover:bg-white/20 text-gray-700 dark:text-gray-200"
+                onClick={onEdit}
+                aria-label="Edit task"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="18" 
+                  height="18" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+              </button>
+              <button 
+                className="p-2 rounded-full hover:bg-white/20 text-gray-700 dark:text-gray-200"
+                onClick={onClose}
+                aria-label="Close task details"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="18" 
+                  height="18" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
             </div>
-
-            {task.initiative && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Initiative</h3>
-                <p className="text-sm">{task.initiative.name}</p>
+          
+            <div className="flex items-start gap-3">
+              {task.emoji && (
+                <div className="relative w-12 h-12 overflow-hidden rounded-md mt-1">
+                  <Image
+                    src={task.emoji.url}
+                    alt="Task emoji"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <h2 className="text-xl font-bold pr-16">{task.name}</h2>
+            </div>
+            
+            <div className="flex items-center gap-3 mt-3">
+              <div
+                className="px-2 py-1 text-xs font-medium rounded-full"
+                style={{ 
+                  backgroundColor: `${task.status.color}25`,
+                  color: task.status.color 
+                }}
+              >
+                {task.status.name}
               </div>
-            )}
-
-            {task.product && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Product</h3>
-                <p className="text-sm">{task.product.name}</p>
-              </div>
-            )}
+              
+              {task.initiative && (
+                <div className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full dark:bg-blue-900/50 dark:text-blue-300">
+                  {task.initiative.name}
+                </div>
+              )}
+            </div>
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Status</h3>
-              <div className="flex items-center gap-2">
-                <div
-                  className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: task.status.color }}
-                ></div>
-                <p className="text-sm">{task.status.name}</p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Timeline</h3>
-              <p className="text-sm">
-                {format(new Date(task.startAt), 'MMM d, yyyy')} - {format(new Date(task.endAt), 'MMM d, yyyy')}
-              </p>
-            </div>
-
-            {task.owner && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Owner</h3>
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={task.owner.image} />
-                    <AvatarFallback>{task.owner.name?.slice(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <p className="text-sm">{task.owner.name}</p>
+          
+          <div className="p-6 flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                {task.description && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {task.description}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Timeline</h3>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">Start Date</div>
+                        <div className="font-medium">
+                          {format(
+                            task.startAt instanceof Date 
+                              ? task.startAt 
+                              : new Date(task.startAt),
+                            'MMM d, yyyy'
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-muted-foreground">→</div>
+                      
+                      <div className="space-y-1 text-right">
+                        <div className="text-xs text-muted-foreground">Due Date</div>
+                        <div className="font-medium">
+                          {format(
+                            task.endAt instanceof Date 
+                              ? task.endAt 
+                              : new Date(task.endAt),
+                            'MMM d, yyyy'
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
-
-            {task.release && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Release</h3>
-                <p className="text-sm">{task.release.name}</p>
+              
+              <div className="space-y-6">
+                {task.owner && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground">Assigned To</h3>
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={task.owner.image} alt={task.owner.name} />
+                          <AvatarFallback>{task.owner.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{task.owner.name}</div>
+                          {task.owner.email && (
+                            <div className="text-xs text-muted-foreground">
+                              {task.owner.email}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {task.emoji && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground">Emoji Style</h3>
+                    <div className="p-4 bg-muted/30 rounded-lg flex items-center gap-3">
+                      <div className="relative w-10 h-10 overflow-hidden rounded-md">
+                        <Image
+                          src={task.emoji.url}
+                          alt="Task emoji"
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        <div>{task.emoji.style}</div>
+                        <div>Seed: {task.emoji.seed}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Task ID</h3>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <div className="font-mono text-xs text-muted-foreground">
+                      {task.id}
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+          </div>
+          
+          <div className="p-4 border-t flex justify-end">
+            {confirmDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-red-600 dark:text-red-400">Are you sure?</span>
+                <button
+                  className="px-3 py-1 bg-muted text-muted-foreground rounded-md text-sm"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-3 py-1 bg-red-500 text-white rounded-md text-sm dark:bg-red-700"
+                  onClick={onDelete}
+                >
+                  Delete
+                </button>
+              </div>
+            ) : (
+              <button
+                className="px-3 py-1 bg-red-100 text-red-600 hover:bg-red-200 rounded-md text-sm font-medium transition-colors dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50"
+                onClick={() => setConfirmDelete(true)}
+              >
+                Delete Task
+              </button>
             )}
           </div>
-        </div>
-
-        <div className="flex justify-end gap-2 mt-6">
-          <button
-            onClick={onDelete}
-            className="px-4 py-2 rounded-md font-medium text-white bg-red-500 hover:bg-red-600"
-          >
-            Delete
-          </button>
-          <button
-            onClick={onEdit}
-            className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Edit
-          </button>
-        </div>
-      </Card>
-    </div>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 };

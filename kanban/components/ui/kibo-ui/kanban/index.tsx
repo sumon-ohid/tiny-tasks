@@ -1,6 +1,7 @@
 'use client';
 
 import React, { type ReactNode } from 'react';
+import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import {
@@ -18,6 +19,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
+import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import type { DragEndEvent } from '@dnd-kit/core';
 
 export type { DragEndEvent } from '@dnd-kit/core';
@@ -34,6 +36,11 @@ export type Feature = {
   startAt: Date;
   endAt: Date;
   status: Status;
+  emoji?: {
+    url: string;
+    style: string;
+    seed: number;
+  };
 };
 
 export type KanbanBoardProps = {
@@ -56,7 +63,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline outline-2 transition-all',
+        'flex h-full min-h-40 flex-col gap-2 rounded-md border p-2 text-xs shadow-sm outline outline-2 transition-all',
         isOver ? 'outline-primary bg-secondary/80' : 'outline-transparent',
         className
       )}
@@ -74,6 +81,11 @@ export type KanbanCardProps = Pick<Feature, 'id' | 'name'> & {
   onClick?: () => void;
   onDelete?: (id: string) => void;
   onEdit?: () => void;
+  emoji?: {
+    url: string;
+    style: string;
+    seed: number;
+  };
 };
 
 export const KanbanCard = ({
@@ -86,6 +98,7 @@ export const KanbanCard = ({
   onClick,
   onDelete,
   onEdit,
+  emoji,
 }: KanbanCardProps) => {
   const {
     attributes,
@@ -106,6 +119,7 @@ export const KanbanCard = ({
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     transition,
+    zIndex: isDragging ? 50 : 'auto',
   } : undefined;
 
   return (
@@ -122,7 +136,7 @@ export const KanbanCard = ({
         className={cn(
           'rounded-md p-3 shadow-sm relative group cursor-grab',
           'hover:shadow-md transition-all duration-200',
-          isDragging && 'cursor-grabbing shadow-lg opacity-50',
+          isDragging && 'cursor-grabbing shadow-lg opacity-80 border-2 border-primary/30',
           className
         )}
       >
@@ -131,13 +145,27 @@ export const KanbanCard = ({
           {...listeners}
           onClick={() => !isDragging && onClick?.()}
         >
+          {emoji && (
+            <div className="float-right ml-2 mb-1">
+              <div className="relative w-8 h-8 overflow-hidden rounded-md">
+                <Image
+                  src={emoji.url}
+                  alt="Task emoji"
+                  width={32}
+                  height={32}
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          )}
+          
           {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
         </div>
         
         <div className="absolute bottom-2 right-2 left-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
           {onEdit && (
             <button
-              className="px-2 py-1 rounded bg-blue-100 text-blue-600 text-xs font-medium hover:bg-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-300"
+              className="px-2 py-1 rounded bg-blue-100 text-blue-600 text-xs font-medium hover:bg-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-800/50"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -152,7 +180,7 @@ export const KanbanCard = ({
           
           {onDelete && (
             <button
-              className="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-medium hover:bg-red-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 active:bg-red-300"
+              className="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-medium hover:bg-red-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 active:bg-red-300 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-800/50"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -222,7 +250,6 @@ export type KanbanProviderProps = {
   className?: string;
 };
 
-
 export const KanbanProvider = ({
   children,
   onDragEnd,
@@ -242,6 +269,7 @@ export const KanbanProvider = ({
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={onDragEnd}
+      modifiers={[restrictToWindowEdges]}
     >
       <div
         className={cn(
