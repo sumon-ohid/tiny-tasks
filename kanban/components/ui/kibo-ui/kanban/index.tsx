@@ -63,7 +63,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex h-full min-h-40 flex-col gap-2 rounded-md border p-2 text-xs shadow-sm outline outline-2 transition-all',
+        'flex h-full min-h-40 flex-col gap-2 rounded-md border p-2 text-xs shadow-sm outline-2 transition-all',
         isOver ? 'outline-primary bg-secondary/80' : 'outline-transparent',
         className
       )}
