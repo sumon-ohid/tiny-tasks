@@ -56,6 +56,8 @@ export type KanbanCardProps = Pick<Feature, 'id' | 'name'> & {
   children?: ReactNode;
   className?: string;
   onClick?: () => void;
+  onDelete?: (id: string) => void;
+  onEdit?: () => void;
 };
 
 export const KanbanCard = ({
@@ -65,6 +67,9 @@ export const KanbanCard = ({
   parent,
   children,
   className,
+  onClick,
+  onDelete,
+  onEdit,
 }: KanbanCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -72,10 +77,34 @@ export const KanbanCard = ({
       data: { index, parent },
     });
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering onClick of the card
+    if (onDelete) {
+      onDelete(id);
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering onClick of the card
+    if (onEdit) {
+      onEdit();
+    } else if (onClick) {
+      // Fallback to onClick if onEdit is not provided
+      onClick();
+    }
+  };
+
+  // Make the card draggable but not clickable so buttons work properly
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && onClick) {
+      onClick();
+    }
+  };
+
   return (
     <Card
       className={cn(
-        'rounded-md p-3 shadow-sm',
+        'rounded-md p-3 shadow-sm relative group',
         isDragging && 'cursor-grabbing',
         className
       )}
@@ -84,11 +113,37 @@ export const KanbanCard = ({
           ? `translateX(${transform.x}px) translateY(${transform.y}px)`
           : 'none',
       }}
+      onClick={handleCardClick}
       {...listeners}
       {...attributes}
       ref={setNodeRef}
     >
-      {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
+      <div className="pb-6"> {/* Add bottom padding to make room for buttons */}
+        {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
+      </div>
+      
+      {/* Action buttons row at the bottom */}
+      <div className="absolute bottom-2 right-2 left-2 flex justify-end gap-2 z-10">
+        {onEdit && (
+          <button
+            className="px-2 py-1 rounded bg-blue-100 text-blue-600 text-xs font-medium hover:bg-blue-200"
+            onClick={handleEdit}
+            aria-label="Edit task"
+          >
+            Edit
+          </button>
+        )}
+        
+        {onDelete && (
+          <button
+            className="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-medium hover:bg-red-200"
+            onClick={handleDelete}
+            aria-label="Delete task"
+          >
+            Delete
+          </button>
+        )}
+      </div>
     </Card>
   );
 };

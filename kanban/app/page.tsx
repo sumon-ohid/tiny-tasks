@@ -132,6 +132,14 @@ const Home = () => {
     setSelectedTask(null);
   };
 
+  // Handle direct deletion from task card
+  const handleDirectTaskDelete = (taskId: string) => {
+    if (!user) return;
+    
+    const updatedFeatures = removeUserFeature(user.id, taskId);
+    setFeatures(updatedFeatures);
+  };
+
   // Handle opening task detail view
   const handleOpenTaskDetail = (task: Feature) => {
     setSelectedTask(task);
@@ -237,7 +245,11 @@ const Home = () => {
                       parent={status.id}
                       index={index}
                       className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => handleOpenTaskDetail(feature)}
+                      onEdit={() => {
+                        setEditingTask(feature);
+                        setIsTaskModalOpen(true);
+                      }}
+                      onDelete={handleDirectTaskDelete}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex flex-col gap-1">

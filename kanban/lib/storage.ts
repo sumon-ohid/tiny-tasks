@@ -30,7 +30,7 @@ const USER_NOTES_KEY = 'kanban-user-notes';
 
 // Notes type
 export interface Notes {
-  content: any; // Using any for TipTap JSON content
+  content: string; // HTML string content for Maily editor
   lastUpdated: Date;
 }
 
@@ -113,7 +113,7 @@ export const getUserNotes = (): Notes | null => {
 };
 
 // Save user notes
-export const saveUserNotes = (content: any): void => {
+export const saveUserNotes = (content: string): void => {
   if (typeof window === 'undefined') return;
   
   const notes: Notes = {

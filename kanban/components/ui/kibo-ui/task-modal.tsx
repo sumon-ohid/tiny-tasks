@@ -26,6 +26,18 @@ export const TaskModal = ({ task, onSave, onCancel, currentUser }: TaskModalProp
   );
   const [initiative, setInitiative] = useState(task?.initiative?.name || 'General');
 
+  // Update state values when task prop changes
+  useEffect(() => {
+    if (task) {
+      setName(task.name || '');
+      setDescription(task.description || '');
+      setStatusId(task.status.id || exampleStatuses[0].id);
+      setStartDate(task.startAt instanceof Date ? task.startAt : new Date(task.startAt));
+      setEndDate(task.endAt instanceof Date ? task.endAt : new Date(task.endAt));
+      setInitiative(task.initiative?.name || 'General');
+    }
+  }, [task]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     

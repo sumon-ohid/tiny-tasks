@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Import Maily editor styles */
+@import "@maily-to/core/style.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
