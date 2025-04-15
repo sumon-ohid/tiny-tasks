@@ -1,15 +1,24 @@
 'use client';
 
+import React, { type ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import {
   DndContext,
-  rectIntersection,
-  useDraggable,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
   useDroppable,
+  closestCenter,
 } from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 import type { DragEndEvent } from '@dnd-kit/core';
-import type { ReactNode } from 'react';
 
 export type { DragEndEvent } from '@dnd-kit/core';
 
@@ -34,16 +43,22 @@ export type KanbanBoardProps = {
 };
 
 export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
-  const { isOver, setNodeRef } = useDroppable({ id });
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: {
+      type: 'Column',
+      accepts: ['Card'],
+    }
+  });
 
   return (
     <div
+      ref={setNodeRef}
       className={cn(
         'flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline outline-2 transition-all',
-        isOver ? 'outline-primary' : 'outline-transparent',
+        isOver ? 'outline-primary bg-secondary/80' : 'outline-transparent',
         className
       )}
-      ref={setNodeRef}
     >
       {children}
     </div>
@@ -71,80 +86,86 @@ export const KanbanCard = ({
   onDelete,
   onEdit,
 }: KanbanCardProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id,
-      data: { index, parent },
-    });
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering onClick of the card
-    if (onDelete) {
-      onDelete(id);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id,
+    data: {
+      type: 'Card',
+      parent,
+      index,
     }
-  };
+  });
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering onClick of the card
-    if (onEdit) {
-      onEdit();
-    } else if (onClick) {
-      // Fallback to onClick if onEdit is not provided
-      onClick();
-    }
-  };
-
-  // Make the card draggable but not clickable so buttons work properly
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && onClick) {
-      onClick();
-    }
-  };
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    transition,
+  } : undefined;
 
   return (
-    <Card
-      className={cn(
-        'rounded-md p-3 shadow-sm relative group',
-        isDragging && 'cursor-grabbing',
-        className
-      )}
-      style={{
-        transform: transform
-          ? `translateX(${transform.x}px) translateY(${transform.y}px)`
-          : 'none',
-      }}
-      onClick={handleCardClick}
-      {...listeners}
-      {...attributes}
+    <div
       ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className={cn(
+        'touch-none select-none',
+        isDragging && 'z-50'
+      )}
     >
-      <div className="pb-6"> {/* Add bottom padding to make room for buttons */}
-        {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
-      </div>
-      
-      {/* Action buttons row at the bottom */}
-      <div className="absolute bottom-2 right-2 left-2 flex justify-end gap-2 z-10">
-        {onEdit && (
-          <button
-            className="px-2 py-1 rounded bg-blue-100 text-blue-600 text-xs font-medium hover:bg-blue-200"
-            onClick={handleEdit}
-            aria-label="Edit task"
-          >
-            Edit
-          </button>
+      <Card
+        className={cn(
+          'rounded-md p-3 shadow-sm relative group cursor-grab',
+          'hover:shadow-md transition-all duration-200',
+          isDragging && 'cursor-grabbing shadow-lg opacity-50',
+          className
         )}
+      >
+        <div 
+          className="pb-8 w-full"
+          {...listeners}
+          onClick={() => !isDragging && onClick?.()}
+        >
+          {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
+        </div>
         
-        {onDelete && (
-          <button
-            className="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-medium hover:bg-red-200"
-            onClick={handleDelete}
-            aria-label="Delete task"
-          >
-            Delete
-          </button>
-        )}
-      </div>
-    </Card>
+        <div className="absolute bottom-2 right-2 left-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+          {onEdit && (
+            <button
+              className="px-2 py-1 rounded bg-blue-100 text-blue-600 text-xs font-medium hover:bg-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-300"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit();
+              }}
+              aria-label="Edit task"
+              type="button"
+            >
+              Edit
+            </button>
+          )}
+          
+          {onDelete && (
+            <button
+              className="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-medium hover:bg-red-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 active:bg-red-300"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete(id);
+              }}
+              aria-label="Delete task"
+              type="button"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 };
 
@@ -153,9 +174,23 @@ export type KanbanCardsProps = {
   className?: string;
 };
 
-export const KanbanCards = ({ children, className }: KanbanCardsProps) => (
-  <div className={cn('flex flex-1 flex-col gap-2', className)}>{children}</div>
-);
+type KanbanCardElement = React.ReactElement<KanbanCardProps>;
+
+export const KanbanCards = ({ children, className }: KanbanCardsProps) => {
+  const ids = React.Children.toArray(children)
+    .filter((child): child is KanbanCardElement => {
+      if (!React.isValidElement<KanbanCardProps>(child)) return false;
+      const props = child.props as Partial<KanbanCardProps>;
+      return props && typeof props.id === 'string';
+    })
+    .map(child => child.props.id);
+
+  return (
+    <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+      <div className={cn('flex flex-1 flex-col gap-2', className)}>{children}</div>
+    </SortableContext>
+  );
+};
 
 export type KanbanHeaderProps =
   | {
@@ -190,12 +225,31 @@ export const KanbanProvider = ({
   children,
   onDragEnd,
   className,
-}: KanbanProviderProps) => (
-  <DndContext collisionDetection={rectIntersection} onDragEnd={onDragEnd}>
-    <div
-      className={cn('grid w-full auto-cols-fr grid-flow-col gap-4', className)}
+}: KanbanProviderProps) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  return (
+    <DndContext 
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={onDragEnd}
     >
-      {children}
-    </div>
-  </DndContext>
-);
+      <div
+        className={cn(
+          'grid w-full auto-cols-fr grid-flow-col gap-4',
+          'overflow-x-auto touch-pan-x pb-4 md:overflow-x-visible',
+          className
+        )}
+      >
+        {children}
+      </div>
+    </DndContext>
+  );
+};

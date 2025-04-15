@@ -38,7 +38,6 @@ const shortDateFormatter = new Intl.DateTimeFormat('en-US', {
   day: 'numeric'
 });
 
-// Mock active users for demonstration
 const ACTIVE_USERS = [
   { id: '1', name: 'Alice Johnson', image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=1' },
   { id: '2', name: 'Bob Smith', image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=2' },
@@ -46,7 +45,7 @@ const ACTIVE_USERS = [
 ];
 
 const Home = () => {
-  const { user, users } = useAuth();
+  const { user } = useAuth();
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selectedTask, setSelectedTask] = useState<Feature | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -54,7 +53,7 @@ const Home = () => {
   const [editingTask, setEditingTask] = useState<Feature | undefined>(undefined);
   const [activeUsers, setActiveUsers] = useState(ACTIVE_USERS);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Filter tasks based on search query
   const filteredFeatures = features.filter(
     feature => feature.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -68,52 +67,75 @@ const Home = () => {
       const userFeatures = getUserFeatures(user.id);
       setFeatures(userFeatures);
       
-      // Update active users for the demo - in a real app this would come from a backend
-      if (!activeUsers.some(u => u.id === user.id)) {
-        if (user.image) {
-          setActiveUsers(prev => [...prev.filter(u => u.id !== user.id), user as { id: string; name: string; image: string }]);
-        }
+      if (!activeUsers.some(u => u.id === user.id) && user.image) {
+        setActiveUsers(prev => [...prev.filter(u => u.id !== user.id), user as { id: string; name: string; image: string }]);
       }
     }
-  }, [user]);
+  }, [user, activeUsers]);
 
+  if (!user) {
+    return <LoginModal onLogin={() => {}} />;
+  }
+  
   // Handle drag and drop
   const handleDragEnd = (event: DragEndEvent) => {
-    if (!user) return;
-    
     const { active, over } = event;
-
-    if (!over) return;
-
-    const status = exampleStatuses.find((status) => status.id === over.id);
-    if (!status) return;
-
-    const updatedFeatures = features.map((feature) => {
-      if (feature.id === active.id) {
-        const updatedFeature = { ...feature, status };
-        // Update in storage
-        updateUserFeature(user.id, updatedFeature);
-        return updatedFeature;
-      }
-      return feature;
-    });
-
+  
+    if (!over || !active.data.current) return;
+  
+    const activeData = active.data.current;
+    const isCard = activeData.type === 'Card';
+    
+    if (!isCard) return;
+  
+    const activeIndex = features.findIndex(f => f.id === active.id);
+    if (activeIndex === -1) return;
+  
+    const updatedFeatures = [...features];
+    const movedFeature = { ...updatedFeatures[activeIndex] };
+    updatedFeatures.splice(activeIndex, 1);
+  
+    // When dropping onto a column
+    if (typeof over.id === 'string' && !over.data.current?.type) {
+      // Dropping directly onto a status column
+      const status = exampleStatuses.find(s => s.id === over.id);
+      if (!status) return;
+      
+      movedFeature.status = status;
+      updatedFeatures.push(movedFeature);
+    } 
+    // When dropping onto another card
+    else if (over.data.current?.type === 'Card') {
+      const overIndex = features.findIndex(f => f.id === over.id);
+      if (overIndex === -1) return;
+      
+      // Get the status from the card we're dropping onto
+      const targetStatus = features[overIndex].status;
+      movedFeature.status = targetStatus;
+      
+      // Insert at the position of the target card
+      updatedFeatures.splice(overIndex, 0, movedFeature);
+    }
+    // Fallback - just add to the end
+    else {
+      updatedFeatures.push(movedFeature);
+    }
+  
     setFeatures(updatedFeatures);
+    saveUserFeatures(user.id, updatedFeatures);
+    updateUserFeature(user.id, movedFeature);
   };
+  
 
   // Handle task creation/update
   const handleSaveTask = (task: Feature) => {
-    if (!user) return;
-
     if (editingTask) {
-      // Update existing task
       const updatedFeatures = features.map(feature => 
         feature.id === task.id ? task : feature
       );
       setFeatures(updatedFeatures);
       saveUserFeatures(user.id, updatedFeatures);
     } else {
-      // Add new task
       const updatedFeatures = addUserFeature(user.id, task);
       setFeatures(updatedFeatures);
     }
@@ -124,7 +146,7 @@ const Home = () => {
 
   // Handle task deletion
   const handleDeleteTask = () => {
-    if (!user || !selectedTask) return;
+    if (!selectedTask) return;
     
     const updatedFeatures = removeUserFeature(user.id, selectedTask.id);
     setFeatures(updatedFeatures);
@@ -134,8 +156,6 @@ const Home = () => {
 
   // Handle direct deletion from task card
   const handleDirectTaskDelete = (taskId: string) => {
-    if (!user) return;
-    
     const updatedFeatures = removeUserFeature(user.id, taskId);
     setFeatures(updatedFeatures);
   };
@@ -160,23 +180,16 @@ const Home = () => {
     return filteredFeatures.filter(feature => feature.status.id === statusId).length;
   };
 
-  if (!user) {
-    return <LoginModal onLogin={() => {}} />;
-  }
-
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header with user profile and action buttons */}
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b gap-4 bg-background">
         <div>
           <h1 className="text-xl font-bold">Tiny Tasks</h1>
-          <div className="flex items-center mt-2">
-          </div>
+          <div className="flex items-center mt-2"></div>
         </div>
 
-        
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-        <Nav />
+          <Nav />
           <div className="relative w-full sm:w-64">
             <input
               type="text"
@@ -214,7 +227,6 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Main kanban board */}
       <main className="flex-1 p-4 overflow-auto">
         <KanbanProvider onDragEnd={handleDragEnd} className="p-4">
           {exampleStatuses.map((status) => (
@@ -245,6 +257,7 @@ const Home = () => {
                       parent={status.id}
                       index={index}
                       className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => handleOpenTaskDetail(feature)}
                       onEdit={() => {
                         setEditingTask(feature);
                         setIsTaskModalOpen(true);
@@ -287,7 +300,6 @@ const Home = () => {
         </KanbanProvider>
       </main>
 
-      {/* Task Modal for creating/editing */}
       {isTaskModalOpen && (
         <TaskModal
           task={editingTask}
@@ -300,7 +312,6 @@ const Home = () => {
         />
       )}
 
-      {/* Task Detail Modal */}
       {isTaskDetailOpen && selectedTask && (
         <TaskDetail
           task={selectedTask}
