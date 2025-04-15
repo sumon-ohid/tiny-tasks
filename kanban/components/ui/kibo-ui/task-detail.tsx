@@ -101,13 +101,13 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
           
             <div className="flex items-start gap-3">
               {task.emoji && (
-                <div className="relative w-12 h-12 overflow-hidden rounded-md mt-1">
+                <div className="relative w-12 h-12 overflow-hidden rounded-full mt-1">
                   <Image
                     src={task.emoji.url}
                     alt="Task emoji"
                     width={48}
                     height={48}
-                    className="object-cover"
+                    className="object-cover rounded-full"
                     unoptimized
                     onError={(e) => {
                       // Try to reload with a different format if it fails
@@ -116,7 +116,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                         img.src = `${task.emoji.url.split('?')[0]}?seed=${task.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
                       } else {
                         // If PNG also fails, use a fallback emoji
-                        img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%2310B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
+                        img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
                       }
                     }}
                   />
@@ -193,39 +193,17 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
               </div>
               
               <div className="space-y-6">
-                {task.owner && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">Assigned To</h3>
-                    <div className="p-4 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={task.owner.image} alt={task.owner.name} />
-                          <AvatarFallback>{task.owner.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{task.owner.name}</div>
-                          {task.owner.email && (
-                            <div className="text-xs text-muted-foreground">
-                              {task.owner.email}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
                 {task.emoji && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium text-muted-foreground">Emoji Style</h3>
                     <div className="p-4 bg-muted/30 rounded-lg flex items-center gap-3">
-                      <div className="relative w-10 h-10 overflow-hidden rounded-md">
+                      <div className="relative w-10 h-10 overflow-hidden rounded-full">
                         <Image
                           src={task.emoji.url}
                           alt="Task emoji"
                           width={40}
                           height={40}
-                          className="object-cover"
+                          className="object-cover rounded-full"
                           unoptimized
                           onError={(e) => {
                             // Try to reload with a different format if it fails
@@ -234,7 +212,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                               img.src = `${task.emoji.url.split('?')[0]}?seed=${task.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
                             } else {
                               // If PNG also fails, use a fallback emoji
-                              img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%2310B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
+                              img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
                             }
                           }}
                         />

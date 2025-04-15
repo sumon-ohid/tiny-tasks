@@ -67,7 +67,7 @@
   --card-foreground: #37352f;
   --popover: #ffffff;
   --popover-foreground: #37352f;
-  --primary: #2ecc71;
+  --primary: #eaad80;
   --primary-foreground: #ffffff;
   --secondary: #f5f5f4;
   --secondary-foreground: #37352f;
@@ -79,10 +79,10 @@
   --destructive-foreground: #ffffff;
   --border: #e6e6e6;
   --input: #e6e6e6;
-  --ring: rgb(46, 204, 113, 0.3);
+  --ring: rgba(234, 173, 128, 0.3);
   
   /* Chart colors */
-  --chart-1: #2ecc71;
+  --chart-1: #eaad80;
   --chart-2: #3498db;
   --chart-3: #9b59b6;
   --chart-4: #f1c40f;
@@ -91,7 +91,7 @@
   /* Sidebar colors */
   --sidebar: #ffffff;
   --sidebar-foreground: #37352f;
-  --sidebar-primary: #2ecc71;
+  --sidebar-primary: #eaad80;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f5f5f4;
   --sidebar-accent-foreground: #37352f;
@@ -107,7 +107,7 @@
   --card-foreground: #e6e6e6;
   --popover: #202020;
   --popover-foreground: #e6e6e6;
-  --primary: #2ecc71;
+  --primary: #eaad80;
   --primary-foreground: #191919;
   --secondary: #2c2c2c;
   --secondary-foreground: #e6e6e6;
@@ -119,10 +119,10 @@
   --destructive-foreground: #e6e6e6;
   --border: #303030;
   --input: #303030;
-  --ring: rgba(46, 204, 113, 0.3);
+  --ring: rgba(234, 173, 128, 0.3);
   
   /* Chart colors for dark mode */
-  --chart-1: #2ecc71;
+  --chart-1: #eaad80;
   --chart-2: #3498db;
   --chart-3: #9b59b6;
   --chart-4: #f1c40f;
@@ -131,12 +131,49 @@
   /* Sidebar colors for dark mode */
   --sidebar: #202020;
   --sidebar-foreground: #e6e6e6;
-  --sidebar-primary: #2ecc71;
+  --sidebar-primary: #eaad80;
   --sidebar-primary-foreground: #191919;
   --sidebar-accent: #2c2c2c;
   --sidebar-accent-foreground: #e6e6e6;
   --sidebar-border: #303030;
   --sidebar-ring: #a3a29e;
+}
+
+/* Notes editor styles */
+.dark .maily-editor {
+  --maily-editor-bg: #202020;
+  --maily-editor-text: #e6e6e6;
+  --maily-editor-placeholder: #a3a29e;
+  --maily-editor-selection-bg: rgba(234, 173, 128, 0.3);
+  --maily-editor-selection-text: #e6e6e6;
+  --maily-editor-scrollbar-track: transparent;
+  --maily-editor-scrollbar-thumb: #a3a29e;
+  --maily-editor-scrollbar-thumb-hover: #eaad80;
+  --maily-editor-menu-bg: #2c2c2c;
+  --maily-editor-menu-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --maily-editor-menu-text: #e6e6e6;
+  --maily-editor-menu-item-hover-bg: #383838;
+  --maily-editor-menu-item-active-bg: #eaad80;
+  --maily-editor-menu-item-active-text: #191919;
+  --maily-editor-separator: #303030;
+}
+
+.maily-editor {
+  --maily-editor-bg: #ffffff;
+  --maily-editor-text: #37352f;
+  --maily-editor-placeholder: #64635c;
+  --maily-editor-selection-bg: rgba(234, 173, 128, 0.3);
+  --maily-editor-selection-text: #37352f;
+  --maily-editor-scrollbar-track: transparent;
+  --maily-editor-scrollbar-thumb: #64635c;
+  --maily-editor-scrollbar-thumb-hover: #eaad80;
+  --maily-editor-menu-bg: #ffffff;
+  --maily-editor-menu-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --maily-editor-menu-text: #37352f;
+  --maily-editor-menu-item-hover-bg: #f5f5f4;
+  --maily-editor-menu-item-active-bg: #eaad80;
+  --maily-editor-menu-item-active-text: #ffffff;
+  --maily-editor-separator: #e6e6e6;
 }
 
 @layer base {

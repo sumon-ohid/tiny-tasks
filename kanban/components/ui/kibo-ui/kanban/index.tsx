@@ -147,13 +147,13 @@ export const KanbanCard = ({
         >
           {emoji && (
             <div className="float-right ml-2 mb-1">
-              <div className="relative w-8 h-8 overflow-hidden rounded-md">
+              <div className="relative w-8 h-8 overflow-hidden rounded-full">
                 <Image
                   src={emoji.url}
                   alt="Task emoji"
                   width={32}
                   height={32}
-                  className="object-cover"
+                  className="object-cover rounded-full"
                   unoptimized
                   onError={(e) => {
                     const img = e.currentTarget;
@@ -161,7 +161,7 @@ export const KanbanCard = ({
                       img.src = `${emoji.url.split('?')[0]}?seed=${emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
                     } else {
                       // If PNG also fails, use a fallback emoji
-                      img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2310B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
+                      img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
                     }
                   }}
                 />
@@ -283,8 +283,7 @@ export const KanbanProvider = ({
     >
       <div
         className={cn(
-          'grid w-full auto-cols-fr grid-flow-col gap-4',
-          'overflow-x-auto touch-pan-x pb-4 md:overflow-x-visible',
+          'grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4',
           className
         )}
       >

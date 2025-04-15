@@ -82,6 +82,8 @@ const KanbanPage = () => {
     // Apply user preferences
     if (user.preferences?.compactView) {
       setViewMode('compact');
+    } else {
+      setViewMode('board');
     }
     
     if (!activeUsers.some(u => u.id === user.id) && user.image) {

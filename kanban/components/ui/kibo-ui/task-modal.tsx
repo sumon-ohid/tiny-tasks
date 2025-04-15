@@ -95,7 +95,6 @@ export const TaskModal = ({ task, onSave, onCancel, currentUser }: TaskModalProp
       endAt: endDate,
       description,
       emoji,
-      owner: currentUser,
       initiative: initiative ? {
         id: task?.initiative?.id || generateId(),
         name: initiative
@@ -285,21 +284,6 @@ export const TaskModal = ({ task, onSave, onCancel, currentUser }: TaskModalProp
               {errors.dates && (
                 <p className="text-red-500 text-xs col-span-2 mt-1">{errors.dates}</p>
               )}
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Assigned To
-              </label>
-              <div className="p-2 border rounded-md">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={currentUser.image} alt={currentUser.name} />
-                    <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{currentUser.name}</span>
-                </div>
-              </div>
             </div>
             
             <div className="flex justify-end gap-2 pt-4">
