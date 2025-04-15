@@ -47,6 +47,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
     id,
     data: {
       type: 'Column',
+      id,
       accepts: ['Card'],
     }
   });
@@ -220,6 +221,7 @@ export type KanbanProviderProps = {
   onDragEnd: (event: DragEndEvent) => void;
   className?: string;
 };
+
 
 export const KanbanProvider = ({
   children,

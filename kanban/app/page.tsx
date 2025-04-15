@@ -19,7 +19,7 @@ import { TaskDetail } from '@/components/ui/kibo-ui/task-detail';
 import { AvatarStack } from '@/components/ui/kibo-ui/avatar-stack';
 import { useAuth } from '@/lib/auth';
 import { 
-  getUserFeatures, 
+  getUserFeatures,
   saveUserFeatures, 
   updateUserFeature,
   addUserFeature,
@@ -81,49 +81,60 @@ const Home = () => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
   
-    if (!over || !active.data.current) return;
+    if (!over) return;
   
-    const activeData = active.data.current;
-    const isCard = activeData.type === 'Card';
+    const activeId = active.id;
+    const overId = over.id;
     
-    if (!isCard) return;
-  
-    const activeIndex = features.findIndex(f => f.id === active.id);
-    if (activeIndex === -1) return;
-  
+    // Early return if nothing has changed
+    if (activeId === overId) return;
+    
+    const activeFeatureIndex = features.findIndex(f => f.id === activeId);
+    if (activeFeatureIndex === -1) return;
+    
     const updatedFeatures = [...features];
-    const movedFeature = { ...updatedFeatures[activeIndex] };
-    updatedFeatures.splice(activeIndex, 1);
-  
-    // When dropping onto a column
-    if (typeof over.id === 'string' && !over.data.current?.type) {
-      // Dropping directly onto a status column
-      const status = exampleStatuses.find(s => s.id === over.id);
-      if (!status) return;
+    const activeFeature = { ...updatedFeatures[activeFeatureIndex] };
+    
+    // Check if dropping onto a column (status container)
+    if (typeof overId === 'string' && exampleStatuses.some(s => s.id === overId)) {
+      // Get the target status
+      const newStatus = exampleStatuses.find(s => s.id === overId);
+      if (!newStatus) return;
       
-      movedFeature.status = status;
-      updatedFeatures.push(movedFeature);
+      // Remove the active feature from its original position
+      updatedFeatures.splice(activeFeatureIndex, 1);
+      
+      // Update its status
+      activeFeature.status = newStatus;
+      
+      // Add it to the end of the list
+      updatedFeatures.push(activeFeature);
     } 
-    // When dropping onto another card
-    else if (over.data.current?.type === 'Card') {
-      const overIndex = features.findIndex(f => f.id === over.id);
-      if (overIndex === -1) return;
-      
-      // Get the status from the card we're dropping onto
-      const targetStatus = features[overIndex].status;
-      movedFeature.status = targetStatus;
-      
-      // Insert at the position of the target card
-      updatedFeatures.splice(overIndex, 0, movedFeature);
-    }
-    // Fallback - just add to the end
+    // Check if dropping onto another card
     else {
-      updatedFeatures.push(movedFeature);
+      const overFeatureIndex = features.findIndex(f => f.id === overId);
+      if (overFeatureIndex === -1) return;
+      
+      // Get the target card's status
+      const targetStatus = features[overFeatureIndex].status;
+      
+      // Remove the active feature from its original position
+      updatedFeatures.splice(activeFeatureIndex, 1);
+      
+      // Update its status to match the target column
+      activeFeature.status = targetStatus;
+      
+      // Find the new position index
+      const newIndex = updatedFeatures.findIndex(f => f.id === overId);
+      
+      // Insert at the new position
+      updatedFeatures.splice(newIndex >= 0 ? newIndex : overFeatureIndex, 0, activeFeature);
     }
-  
+    
+    // Update state and storage
     setFeatures(updatedFeatures);
     saveUserFeatures(user.id, updatedFeatures);
-    updateUserFeature(user.id, movedFeature);
+    updateUserFeature(user.id, activeFeature);
   };
   
 
