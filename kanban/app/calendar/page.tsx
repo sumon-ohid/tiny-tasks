@@ -193,8 +193,6 @@ const CalendarPageContent = () => {
               Add Task
             </button>
           </div>
-          
-          <UserProfile />
         </div>
       </header>
 

@@ -47,9 +47,6 @@ export function LayoutContent({ children }: LayoutContentProps) {
                 </motion.div>
                 <span className="font-bold text-md hidden md:inline-block">Tiny Tasks</span>
               </Link>
-              
-              {/* User profile */}
-              <UserProfile />
             </div>
           </header>
           

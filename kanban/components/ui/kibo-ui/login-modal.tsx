@@ -1,120 +1,133 @@
 'use client';
 
 import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useAuthContext } from '@/lib/auth';
+import { TextRotate } from '@/components/ui/text-rotate';
+import { Loader2 } from 'lucide-react';
 
-export const LoginModal = () => {
+export const LoginHero = () => {
   const { users, login, isLoading } = useAuthContext();
   const [loginInProgress, setLoginInProgress] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  const handleLogin = (userId: string) => {
-    setSelectedUserId(userId);
+  const handleLogin = () => {
+    const firstUserId = users?.[0]?.id;
+    if (!firstUserId || loginInProgress) return;
+
     setLoginInProgress(true);
-    
-    // Simulate a login process with a small delay for UX
     setTimeout(() => {
-      login(userId);
-      setLoginInProgress(false);
+      login(firstUserId);
     }, 800);
   };
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
         type: 'spring',
-        stiffness: 80
-      }
-    }
+        damping: 15,
+        stiffness: 100,
+      },
+    },
   };
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm">
-        <div className="animate-pulse text-center">
-          <div className="h-8 w-8 mx-auto rounded-full border-4 border-primary border-b-transparent animate-spin mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Loading Users...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm">
-      <Card className="w-full max-w-md p-6 shadow-xl">
-        <motion.div 
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="space-y-6"
+  if (!users || users.length === 0) {
+     return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center p-6 bg-card rounded-lg shadow-lg border max-w-sm"
         >
-          <motion.div 
-            variants={itemVariants} 
-            className="text-center"
-          >
-            <h1 className="text-2xl font-bold">Welcome to Tiny Tasks</h1>
-            <p className="text-muted-foreground mt-2">Select a user to continue</p>
-          </motion.div>
-          
-          <motion.div 
-            variants={itemVariants}
-            className="grid grid-cols-1 gap-4"
-          >
-            {users.map((user) => (
-              <motion.button
-                key={user.id}
-                onClick={() => handleLogin(user.id)}
-                className={`flex items-center p-4 rounded-lg transition-all ${
-                  selectedUserId === user.id
-                    ? 'bg-primary/20 border-primary'
-                    : 'hover:bg-secondary'
-                } border`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={loginInProgress}
-              >
-                <Avatar className="h-10 w-10 mr-4">
-                  <AvatarImage src={user.image} alt={user.name} />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="text-left">
-                  <div className="font-medium leading-none">{user.name}</div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {user.email}
-                    {user.role && <span className="ml-2 px-2 py-0.5 bg-muted rounded-full text-xs">{user.role}</span>}
-                  </div>
-                </div>
-                {selectedUserId === user.id && loginInProgress && (
-                  <div className="ml-auto">
-                    <div className="h-5 w-5 rounded-full border-2 border-primary border-b-transparent animate-spin"></div>
-                  </div>
-                )}
-              </motion.button>
-            ))}
-          </motion.div>
-          
-          <motion.div variants={itemVariants} className="text-center text-sm text-muted-foreground">
-            <p>This is a demo application. No real authentication is performed.</p>
-          </motion.div>
+           <h2 className="text-xl font-semibold mb-2 text-destructive">Error</h2>
+           <p className="text-muted-foreground">Could not load user data. Please check your setup or try again later.</p>
         </motion.div>
-      </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-secondary/20 to-background p-4">
+       <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] bg-[url('/grid.svg')] [mask-image:radial-gradient(farthest-side_at_center,white,transparent)]"></div>
+
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-8 max-w-2xl mx-auto"
+      >
+        <motion.h1
+          variants={itemVariants}
+          className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground"
+        >
+          Welcome to{' '}
+          <TextRotate
+            texts={["Tiny Tasks", "Kanban Board", "Productivity"]}
+            rotationInterval={2800}
+            mainClassName="inline-block text-primary px-2 rounded-md bg-primary/10"
+            splitLevelClassName="inline-block"
+            elementLevelClassName="inline-block"
+            staggerDuration={0.03}
+            staggerFrom="center"
+          />
+        </motion.h1>
+
+        <motion.p
+          variants={itemVariants}
+          className="text-base sm:text-lg text-muted-foreground max-w-md sm:max-w-lg"
+        >
+          Organize your work, streamline your projects, and boost collaboration. Select the demo user to continue.
+        </motion.p>
+
+        <motion.div variants={itemVariants} className="pt-2">
+          <Button
+            size="lg"
+            onClick={handleLogin}
+            disabled={loginInProgress || !users || users.length === 0}
+            className="px-10 py-6 text-base sm:text-lg font-semibold shadow-lg hover:shadow-primary/20 transition-shadow"
+          >
+            {loginInProgress ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Logging In...
+              </>
+            ) : (
+              `Continue as ${users[0]?.name || 'Demo User'}`
+            )}
+          </Button>
+        </motion.div>
+
+         <motion.p variants={itemVariants} className="text-xs text-muted-foreground/70 pt-4">
+            This is a demo application. No real authentication is performed.
+         </motion.p>
+      </motion.div>
     </div>
   );
 };
+
+export const LoginModal = LoginHero;

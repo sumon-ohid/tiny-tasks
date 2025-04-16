@@ -394,8 +394,6 @@ const KanbanPage = () => {
               )}
             </button>
           </div>
-          
-          <UserProfile />
         </div>
       </header>
 
