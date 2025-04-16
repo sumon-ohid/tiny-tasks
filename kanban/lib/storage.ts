@@ -58,11 +58,11 @@ export const getUserFeatures = (userId: string): Feature[] => {
       startAt: new Date(feature.startAt),
       endAt: new Date(feature.endAt),
       // Add default emoji for example features
-      emoji: {
-        url: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${Math.floor(Math.random() * 100) + 1}&backgroundColor=${getRandomBgColor()}&radius=50`,
-        style: 'adventurer-neutral', 
-        seed: Math.floor(Math.random() * 100) + 1
-      }
+      // emoji: {
+      //   url: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${Math.floor(Math.random() * 100) + 1}&backgroundColor=${getRandomBgColor()}&radius=50`,
+      //   style: 'adventurer-neutral', 
+      //   seed: Math.floor(Math.random() * 100) + 1
+      // }
     }));
     localStorage.setItem(key, JSON.stringify(initialFeatures));
     return initialFeatures;

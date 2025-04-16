@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, forwardRef } from 'react';
 import { getUserNotes, saveUserNotes } from '@/lib/storage';
+import type { Notes } from '@/lib/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import {
@@ -303,7 +304,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
     const loadNotes = async () => {
       try {
         const savedNotes = await getUserNotes();
-        if (savedNotes && savedNotes.content) {
+        if (savedNotes && savedNotes.content && savedNotes.content.length > 0) {
           setContent(savedNotes.content);
           editor?.commands.setContent(savedNotes.content);
         }

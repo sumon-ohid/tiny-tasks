@@ -24,7 +24,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '1',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=1',
         name: 'Alice Johnson',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -40,7 +39,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '2',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=2',
         name: 'Bob Smith',
       },
       initiative: { id: '2', name: 'Real-time Collaboration' },
@@ -56,7 +54,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '3',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=3',
         name: 'Charlie Brown',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -72,7 +69,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '4',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=4',
         name: 'Diana Prince',
       },
       initiative: { id: '2', name: 'Real-time Collaboration' },
@@ -88,7 +84,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '5',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=5',
         name: 'Ethan Hunt',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -104,7 +99,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '6',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=6',
         name: 'Fiona Gallagher',
       },
       initiative: { id: '3', name: 'Cloud Migration' },
@@ -120,7 +114,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '7',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=7',
         name: 'George Lucas',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -136,7 +129,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '8',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=8',
         name: 'Hannah Montana',
       },
       initiative: { id: '2', name: 'Real-time Collaboration' },
@@ -152,7 +144,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '9',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=9',
         name: 'Ian Malcolm',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -168,7 +159,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '10',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=10',
         name: 'Julia Roberts',
       },
       initiative: { id: '2', name: 'Real-time Collaboration' },
@@ -184,7 +174,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '11',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=11',
         name: 'Kevin Hart',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -200,7 +189,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '12',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=12',
         name: 'Lara Croft',
       },
       initiative: { id: '3', name: 'Cloud Migration' },
@@ -216,7 +204,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '13',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=13',
         name: 'Michael Scott',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -232,7 +219,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '14',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=14',
         name: 'Natalie Portman',
       },
       initiative: { id: '2', name: 'Real-time Collaboration' },
@@ -248,7 +234,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '15',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=15',
         name: 'Oscar Isaac',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -264,7 +249,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '16',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=16',
         name: 'Penelope Cruz',
       },
       initiative: { id: '3', name: 'Cloud Migration' },
@@ -280,7 +264,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '17',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=17',
         name: 'Quentin Tarantino',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -296,7 +279,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '18',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=18',
         name: 'Rachel Green',
       },
       initiative: { id: '2', name: 'Real-time Collaboration' },
@@ -312,7 +294,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '19',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=19',
         name: 'Samuel L. Jackson',
       },
       initiative: { id: '1', name: 'AI Integration' },
@@ -328,7 +309,6 @@ import {
       product: { id: '1', name: 'Video Editor Pro' },
       owner: {
         id: '20',
-        image: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=20',
         name: 'Tom Hanks',
       },
       initiative: { id: '3', name: 'Cloud Migration' },

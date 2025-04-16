@@ -98,6 +98,18 @@ const KanbanPage = () => {
     if (!user) return;
     
     const { active, over } = event;
+    
+    // Debug information for drag & drop
+    console.log('[DragEnd]', {
+      active: {
+        id: active.id,
+        data: active.data.current,
+      },
+      over: over ? {
+        id: over.id,
+        data: over.data.current,
+      } : 'none',
+    });
   
     if (!over || !active.data.current) return;
   
@@ -113,20 +125,50 @@ const KanbanPage = () => {
     const movedFeature = { ...updatedFeatures[activeIndex] };
     updatedFeatures.splice(activeIndex, 1);
   
-    // When dropping onto a column
-    if (typeof over.id === 'string' && !over.data.current?.type) {
-      // Dropping directly onto a status column
-      const status = exampleStatuses.find(s => s.id === over.id);
+    // Check if this is a column by matching its ID with exampleStatuses
+    const isColumnId = exampleStatuses.some(s => s.id === over.id);
+    const targetColumnId = isColumnId ? over.id.toString() : null;
+    const isCardOver = over.data.current?.type === 'Card';
+    
+    // Case 1: Dropping onto a column/board
+    if (targetColumnId) {
+      const status = exampleStatuses.find(s => s.id === targetColumnId);
       if (!status) return;
       
       movedFeature.status = status;
-      updatedFeatures.push(movedFeature);
       
-      // Show toast notification
+      // Find all features with the target status (after removal of the moved feature)
+      const featuresInTargetStatus = updatedFeatures.filter(f => f.status.id === status.id);
+      
+      if (featuresInTargetStatus.length === 0) {
+        // No items in this column, just add it
+        updatedFeatures.push(movedFeature);
+      } else {
+        // There are items in this column already
+        
+        // Check if we were dropped near a card in the column
+        if (over.data.current?.type === 'Card') {
+          // We were dropped on a card - check if that card is in the target column
+          const overIndex = updatedFeatures.findIndex(f => f.id === over.id);
+          if (overIndex !== -1 && updatedFeatures[overIndex].status.id === status.id) {
+            // The card we dropped on is in the target column, insert at that position
+            updatedFeatures.splice(overIndex, 0, movedFeature);
+          } else {
+            // The card we dropped on is not in the target column 
+            // (this can happen during column transitions due to DND quirks)
+            // Add to the end of the target column
+            updatedFeatures.push(movedFeature);
+          }
+        } else {
+          // We were dropped directly on the column, add to the end of the column's cards
+          updatedFeatures.push(movedFeature);
+        }
+      }
+      
       toast.success(`Moved "${movedFeature.name}" to ${status.name}`);
     } 
-    // When dropping onto another card
-    else if (over.data.current?.type === 'Card') {
+    // Case 2: Dropping onto another card
+    else if (isCardOver) {
       const overIndex = features.findIndex(f => f.id === over.id);
       if (overIndex === -1) return;
       
@@ -136,8 +178,10 @@ const KanbanPage = () => {
       
       // Insert at the position of the target card
       updatedFeatures.splice(overIndex, 0, movedFeature);
+      
+      toast.success(`Moved "${movedFeature.name}" to ${targetStatus.name}`);
     }
-    // Fallback - just add to the end
+    // Case 3: Fallback - just add to the end with the same status
     else {
       updatedFeatures.push(movedFeature);
     }
