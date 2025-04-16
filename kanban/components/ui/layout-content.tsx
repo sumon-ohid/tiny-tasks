@@ -1,90 +1,17 @@
 'use client';
 
-import { ExpandableTabs } from "@/components/ui/expandable-tabs";
-import { UserProfile } from "@/components/ui/kibo-ui/user-profile";
-import { ThemeProvider } from "@/components/ui/kibo-ui/theme-provider";
-import { AuthProvider } from "@/lib/auth";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import React from 'react';
+import { AuthProvider } from '@/lib/auth';
+import { ThemeProvider } from '@/components/ui/kibo-ui/theme-provider';
+import { UserProfile } from './kibo-ui/user-profile';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 interface LayoutContentProps {
   children: React.ReactNode;
 }
 
 export function LayoutContent({ children }: LayoutContentProps) {
-  // Navigation items for the expandable tabs
-  const navItems = [
-    {
-      value: "kanban",
-      label: "Kanban Board",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      ),
-      href: "/",
-    },
-    {
-      value: "calendar",
-      label: "Calendar",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-          <line x1="16" y1="2" x2="16" y2="6"></line>
-          <line x1="8" y1="2" x2="8" y2="6"></line>
-          <line x1="3" y1="10" x2="21" y2="10"></line>
-        </svg>
-      ),
-      href: "/calendar",
-    },
-    {
-      value: "notes",
-      label: "Notes",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <path d="M14 2v6h6"></path>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <line x1="10" y1="9" x2="8" y2="9"></line>
-        </svg>
-      ),
-      href: "/notes",
-    },
-  ];
-
   return (
     <AuthProvider>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
@@ -128,9 +55,11 @@ export function LayoutContent({ children }: LayoutContentProps) {
           
           {/* Main content area with sidebar */}
           <div className="flex-1 flex flex-col md:flex-row">
-            {/* Sidebar with expandable tabs */}
+            {/* Sidebar with expandable tabs removed */}
             <aside className="md:w-64 p-4 border-r border-border bg-card/20">
-              <ExpandableTabs items={navItems} defaultExpanded={true} />
+              {/* <ExpandableTabs tabs={navItems} /> */}
+              {/* Placeholder or alternative navigation can go here */}
+              <div className="text-sm text-muted-foreground">Navigation</div>
             </aside>
             
             {/* Main content */}

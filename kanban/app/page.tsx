@@ -16,7 +16,6 @@ import { UserProfile } from '@/components/ui/kibo-ui/user-profile';
 import { Nav } from '@/components/ui/kibo-ui/nav';
 import { TaskModal } from '@/components/ui/kibo-ui/task-modal';
 import { TaskDetail } from '@/components/ui/kibo-ui/task-detail';
-import { AvatarStack } from '@/components/ui/kibo-ui/avatar-stack';
 import { AuthProvider, useAuthContext } from '@/lib/auth';
 import NotesEditor from '@/components/ui/kibo-ui/notes-editor';
 import { 
@@ -29,12 +28,6 @@ import {
 } from '@/lib/storage';
 import { Toaster, toast } from 'sonner';
 import Image from 'next/image';
-
-const dateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric'
-});
 
 const shortDateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -631,7 +624,6 @@ const KanbanPage = () => {
             setIsTaskModalOpen(false);
             setEditingTask(undefined);
           }}
-          currentUser={user}
         />
       )}
 

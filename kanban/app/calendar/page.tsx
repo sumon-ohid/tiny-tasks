@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isEqual, parse } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { AuthProvider, useAuthContext } from '@/lib/auth';
 import { getUserFeatures, type Feature } from '@/lib/storage';
 import { LoginModal } from '@/components/ui/kibo-ui/login-modal';
@@ -10,7 +10,6 @@ import { UserProfile } from '@/components/ui/kibo-ui/user-profile';
 import { TaskModal } from '@/components/ui/kibo-ui/task-modal';
 import { TaskDetail } from '@/components/ui/kibo-ui/task-detail';
 import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Toaster, toast } from 'sonner';
 import Image from 'next/image';
 
@@ -334,11 +333,15 @@ const CalendarPageContent = () => {
                       
                       <button
                         onClick={() => {
-                          const newTask = {
+                          // Define a partial Feature type for the new task
+                          const newTask: Partial<Feature> = {
                             startAt: day,
-                            endAt: day
+                            endAt: day,
+                            // Add default values for other required Feature fields if necessary
+                            // e.g., id: crypto.randomUUID(), name: '', status: 'todo', etc.
+                            // Depending on what TaskModal expects. For now, just setting dates.
                           };
-                          setEditingTask(newTask as any);
+                          setEditingTask(newTask as Feature); // Cast to Feature, assuming TaskModal handles partial data
                           setIsTaskModalOpen(true);
                         }}
                         className="absolute right-1 top-1 p-1 rounded-full opacity-0 hover:opacity-100 hover:bg-muted/80 transition-opacity focus:opacity-100"
@@ -375,7 +378,6 @@ const CalendarPageContent = () => {
             setIsTaskModalOpen(false);
             setEditingTask(undefined);
           }}
-          currentUser={user}
         />
       )}
 

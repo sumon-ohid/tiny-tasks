@@ -91,7 +91,7 @@ export default function NotesPage() {
                     <line x1="16" y1="17" x2="8" y2="17"></line>
                     <line x1="10" y1="9" x2="8" y2="9"></line>
                   </svg>
-                  <p className="text-muted-foreground">No notes yet. Click "Edit Notes" to start writing!</p>
+                  <p className="text-muted-foreground">No notes yet. Click &quot;Edit Notes&quot; to start writing!</p>
                 </motion.div>
               </div>
             ) : (
@@ -119,7 +119,7 @@ export default function NotesPage() {
                     <line x1="16" y1="17" x2="8" y2="17"></line>
                     <line x1="10" y1="9" x2="8" y2="9"></line>
                   </svg>
-                  <p className="text-muted-foreground">Your notes are available! Click "Edit Notes" to edit them.</p>
+                  <p className="text-muted-foreground">Your notes are available! Click &quot;Edit Notes&quot; to edit them.</p>
                   <button
                     onClick={() => setIsEditorOpen(true)}
                     className="mt-4 px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md transition-colors"

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import type { Feature } from '@/lib/storage';
 import Image from 'next/image';
@@ -112,10 +111,10 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                     onError={(e) => {
                       // Try to reload with a different format if it fails
                       const img = e.currentTarget;
-                      if (!img.src.includes('&format=png')) {
+                      if (task.emoji && !img.src.includes('&format=png')) {
                         img.src = `${task.emoji.url.split('?')[0]}?seed=${task.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
                       } else {
-                        // If PNG also fails, use a fallback emoji
+                        // If PNG also fails or emoji doesn't exist, use a fallback emoji
                         img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
                       }
                     }}
@@ -208,10 +207,10 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                           onError={(e) => {
                             // Try to reload with a different format if it fails
                             const img = e.currentTarget;
-                            if (!img.src.includes('&format=png')) {
+                            if (task.emoji && !img.src.includes('&format=png')) {
                               img.src = `${task.emoji.url.split('?')[0]}?seed=${task.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
                             } else {
-                              // If PNG also fails, use a fallback emoji
+                              // If PNG also fails or emoji doesn't exist, use a fallback emoji
                               img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
                             }
                           }}

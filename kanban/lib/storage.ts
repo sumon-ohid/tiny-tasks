@@ -1,4 +1,4 @@
-import { exampleFeatures, exampleStatuses } from './content';
+import { exampleFeatures } from './content';
 import type { User } from './auth';
 
 // Define types
@@ -48,10 +48,6 @@ export const getUserFeatures = (userId: string): Feature[] => {
   const storedFeatures = localStorage.getItem(key);
   
   if (!storedFeatures) {
-    // Background colors for emojis
-    const bgColors = ['714033', 'c07f50', 'eaad80'];
-    const getRandomBgColor = () => bgColors[Math.floor(Math.random() * bgColors.length)];
-    
     // Initialize with example features for demo purposes
     const initialFeatures = exampleFeatures.map(feature => ({
       ...feature,

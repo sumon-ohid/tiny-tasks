@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
@@ -30,12 +30,13 @@ export const EmojiPicker = ({ onSelect, currentEmoji }: EmojiPickerProps) => {
   const [bgColor, setBgColor] = useState<string>(currentEmoji?.bgColor || getRandomBgColor());
   const [showPicker, setShowPicker] = useState(false);
   
-  const generateEmojiUrl = (style: string, customSeed: number, backgroundColor: string) => 
-    `https://api.dicebear.com/7.x/${style}/svg?seed=${customSeed}&backgroundColor=${backgroundColor}&radius=50`;
-    
+  const generateEmojiUrl = useCallback((style: string, customSeed: number, backgroundColor: string) => 
+    `https://api.dicebear.com/7.x/${style}/svg?seed=${customSeed}&backgroundColor=${backgroundColor}&radius=50`, 
+  []);
+  
   const currentUrl = currentEmoji?.url || generateEmojiUrl(selectedStyle, seed, bgColor);
   
-  const handleStyleChange = (style: string) => {
+  const handleStyleChange = useCallback((style: string) => {
     setSelectedStyle(style);
     const newSeed = getRandomSeed();
     const newBgColor = getRandomBgColor();
@@ -43,31 +44,30 @@ export const EmojiPicker = ({ onSelect, currentEmoji }: EmojiPickerProps) => {
     setBgColor(newBgColor);
     const url = generateEmojiUrl(style, newSeed, newBgColor);
     onSelect({ url, style, seed: newSeed, bgColor: newBgColor });
-  };
+  }, [generateEmojiUrl, onSelect]);
   
-  const handleRegenerate = () => {
+  const handleRegenerate = useCallback(() => {
     const newSeed = getRandomSeed();
     const newBgColor = getRandomBgColor();
     setSeed(newSeed);
     setBgColor(newBgColor);
     const url = generateEmojiUrl(selectedStyle, newSeed, newBgColor);
     onSelect({ url, style: selectedStyle, seed: newSeed, bgColor: newBgColor });
-  };
+  }, [generateEmojiUrl, onSelect, selectedStyle]);
 
-  const handleColorChange = (color: string) => {
+  const handleColorChange = useCallback((color: string) => {
     setBgColor(color);
     const url = generateEmojiUrl(selectedStyle, seed, color);
     onSelect({ url, style: selectedStyle, seed, bgColor: color });
-  };
+  }, [generateEmojiUrl, onSelect, seed, selectedStyle]);
   
   // Auto-select when component mounts if no emoji is currently selected
   useEffect(() => {
     if (!currentEmoji) {
-      const initialBgColor = getRandomBgColor();
-      const url = generateEmojiUrl(selectedStyle, seed, initialBgColor);
-      onSelect({ url, style: selectedStyle, seed, bgColor: initialBgColor });
+      const url = generateEmojiUrl(selectedStyle, seed, bgColor);
+      onSelect({ url, style: selectedStyle, seed, bgColor });
     }
-  }, []);
+  }, [currentEmoji, generateEmojiUrl, onSelect, seed, selectedStyle, bgColor]);
 
   return (
     <div className="relative">

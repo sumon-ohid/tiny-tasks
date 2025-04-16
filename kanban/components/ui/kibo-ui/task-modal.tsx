@@ -5,20 +5,17 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { exampleStatuses } from '@/lib/content';
 import { generateId } from '@/lib/storage';
-import type { Feature, Status } from '@/lib/storage';
-import { addDays, isAfter, isBefore, format } from 'date-fns';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { Feature } from '@/lib/storage';
+import { addDays, isAfter, format } from 'date-fns';
 import { EmojiPicker } from './emoji-picker';
-import Image from 'next/image';
 
 type TaskModalProps = {
   task?: Feature;
   onSave: (task: Feature) => void;
   onCancel: () => void;
-  currentUser: { id: string; name: string; image?: string };
 };
 
-export const TaskModal = ({ task, onSave, onCancel, currentUser }: TaskModalProps) => {
+export const TaskModal = ({ task, onSave, onCancel }: TaskModalProps) => {
   const [name, setName] = useState(task?.name || '');
   const [description, setDescription] = useState(task?.description || '');
   const [statusId, setStatusId] = useState(task?.status.id || exampleStatuses[0].id);

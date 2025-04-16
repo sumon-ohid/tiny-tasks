@@ -21,7 +21,10 @@ export const AuthContext = createContext<{
   users: User[];
   login: (userId: string) => boolean;
   logout: () => void;
-  updateUserPreference: (key: keyof User['preferences'], value: any) => void;
+  updateUserPreference: <K extends keyof NonNullable<User['preferences']>>(
+    key: K,
+    value: NonNullable<User['preferences']>[K]
+  ) => void;
   isLoading: boolean;
 }>({
   user: null,
@@ -203,14 +206,23 @@ export const useAuth = () => {
   };
   
   // Update user preference
-  const updateUserPreference = (key: keyof User['preferences'], value: any) => {
+  const updateUserPreference = <K extends keyof NonNullable<User['preferences']>>(
+    key: K, 
+    value: NonNullable<User['preferences']>[K]
+  ) => {
     if (!user) return;
     
+    // We assume user.preferences exists if user exists, 
+    // or provide a default empty object if needed for the update logic.
+    const currentPreferences = user.preferences ?? {};
+
     const updatedPreferences = {
+      ...currentPreferences, // Spread potentially existing preferences
       [key]: value
     };
     
-    updateUserPreferences(user.id, updatedPreferences);
+    // Pass the whole updated preferences object
+    updateUserPreferences(user.id, updatedPreferences as Partial<User['preferences']>);
     
     // Update local state
     setUser(prev => {

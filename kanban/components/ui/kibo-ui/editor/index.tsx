@@ -42,6 +42,7 @@ import { TaskItem } from '@tiptap/extension-task-item';
 import { TaskList } from '@tiptap/extension-task-list';
 import TextStyle from '@tiptap/extension-text-style';
 import Typography from '@tiptap/extension-typography';
+import Underline from '@tiptap/extension-underline';
 import type { DOMOutputSpec, Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { PluginKey } from '@tiptap/pm/state';
 import {
@@ -97,6 +98,8 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import type { FormEventHandler, HTMLAttributes, ReactNode } from 'react';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import Link from '@tiptap/extension-link';
+import Highlight from '@tiptap/extension-highlight';
 
 interface SlashNodeAttrs {
   id: string | null;
@@ -556,6 +559,12 @@ export const EditorProvider = ({
       emptyEditorClass:
         'before:text-muted-foreground before:content-[attr(data-placeholder)] before:float-left before:h-0 before:pointer-events-none',
     }),
+    Link.configure({
+      HTMLAttributes: {
+        class: cn('underline text-primary decoration-primary decoration-dashed')
+      }
+    }),
+    Highlight.configure({ multicolor: true }),
     CharacterCount.configure({
       limit,
     }),
@@ -584,6 +593,7 @@ export const EditorProvider = ({
     }),
     Superscript,
     Subscript,
+    Underline,
     Slash.configure({
       suggestion: {
         items: async ({ editor, query }) => {
@@ -615,22 +625,28 @@ export const EditorProvider = ({
                 editor: props.editor,
               });
 
-              popup = tippy('body', {
-                getReferenceClientRect: props.clientRect,
+              popup = [tippy(document.body, {
+                getReferenceClientRect: () => {
+                  const rect = props.clientRect?.();
+                  return rect ?? new DOMRect(0, 0, 0, 0);
+                },
                 appendTo: () => document.body,
                 content: component.element,
                 showOnCreate: true,
                 interactive: true,
                 trigger: 'manual',
                 placement: 'bottom-start',
-              });
+              })];
             },
 
             onUpdate(props) {
               component.updateProps(props);
 
               popup[0].setProps({
-                getReferenceClientRect: props.clientRect,
+                getReferenceClientRect: () => {
+                  const rect = props.clientRect?.();
+                  return rect ?? new DOMRect(0, 0, 0, 0);
+                },
               });
             },
 
@@ -642,7 +658,7 @@ export const EditorProvider = ({
                 return true;
               }
 
-              return component.ref?.onKeyDown(props);
+              return false;
             },
 
             onExit() {

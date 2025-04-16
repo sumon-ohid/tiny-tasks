@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, forwardRef, useRef } from 'react';
+import React, { useState, useEffect, forwardRef, useCallback } from 'react';
 import { getUserNotes, saveUserNotes } from '@/lib/storage';
-import type { Notes } from '@/lib/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import {
@@ -13,9 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { X, Bold, Italic, List, ListOrdered, CheckSquare, Quote, Code, Heading1, Heading2, Heading3, Image, FileText, Table } from 'lucide-react';
-import * as ReactDOM from 'react-dom/client';
+import { Bold, Italic, Code, Heading1, Heading2, Heading3, ListOrdered, CheckSquare, Quote, ListIcon } from 'lucide-react';
 
 // Tiptap imports
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
@@ -72,189 +69,6 @@ const MenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(
 
 MenuButton.displayName = "MenuButton";
 
-// Custom styles for the editor (to be injected)
-const editorStyles = `
-  .ProseMirror {
-    padding: 1rem;
-    min-height: 100%;
-    height: 100%;
-    outline: none;
-    overflow-y: auto;
-    color: #4b5563;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #eaad80;
-  }
-
-  .dark .ProseMirror {
-    background-color: #191919;
-    color: #e6e6e6;
-  }
-
-  .ProseMirror:focus {
-    outline: none;
-  }
-
-  .ProseMirror p {
-    margin-bottom: 0.75rem;
-  }
-
-  .ProseMirror h1 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-    font-weight: 700;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    color: #1e293b;
-  }
-
-  .dark .ProseMirror h1 {
-    color: #e6e6e6;
-  }
-
-  .ProseMirror h2 {
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 600;
-    margin-top: 1.75rem;
-    margin-bottom: 0.75rem;
-    color: #1e293b;
-  }
-
-  .dark .ProseMirror h2 {
-    color: #e6e6e6;
-  }
-
-  .ProseMirror h3 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-    color: #1e293b;
-  }
-
-  .dark .ProseMirror h3 {
-    color: #e6e6e6;
-  }
-
-  .ProseMirror ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .ProseMirror ol {
-    list-style-type: decimal;
-    padding-left: 1.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .ProseMirror li {
-    margin-bottom: 0.25rem;
-  }
-
-  .ProseMirror blockquote {
-    border-left: 4px solid #e9a959;
-    padding-left: 1rem;
-    font-style: italic;
-    margin: 1rem 0;
-    color: #6b7280;
-  }
-
-  .dark .ProseMirror blockquote {
-    border-left-color: #a67c52;
-    color: #9ca3af;
-  }
-
-  .ProseMirror pre {
-    background-color: #f3f4f6;
-    border-radius: 0.375rem;
-    padding: 0.75rem 1rem;
-    overflow-x: auto;
-    margin: 1rem 0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-  }
-
-  .dark .ProseMirror pre {
-    background-color: #374151;
-  }
-
-  .ProseMirror code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.875rem;
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
-    background-color: #f3f4f6;
-  }
-
-  .dark .ProseMirror code {
-    background-color: #374151;
-  }
-
-  .ProseMirror a {
-    color: #a67c52;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .dark .ProseMirror a {
-    color: #f0c293;
-  }
-
-  .ProseMirror hr {
-    border: none;
-    height: 1px;
-    background-color: #e5e7eb;
-    margin: 1.5rem 0;
-  }
-
-  .dark .ProseMirror hr {
-    background-color: #4b5563;
-  }
-
-  /* Task list styling */
-  .ProseMirror ul[data-type="taskList"] {
-    list-style-type: none;
-    padding-left: 0;
-  }
-
-  .ProseMirror ul[data-type="taskList"] li {
-    display: flex;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
-  }
-
-  .ProseMirror ul[data-type="taskList"] li > label {
-    flex: 0 0 auto;
-    margin-right: 0.5rem;
-    user-select: none;
-  }
-
-  .ProseMirror ul[data-type="taskList"] li > div {
-    flex: 1 1 auto;
-  }
-
-  .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
-    cursor: pointer;
-    height: 1rem;
-    width: 1rem;
-    margin: 0;
-    margin-right: 0.5rem;
-    border-radius: 0.25rem;
-    border: 1px solid #d1d5db;
-    background-color: #ffffff;
-    accent-color: #a67c52;
-  }
-
-  .dark .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
-    border-color: #4b5563;
-    background-color: #1e293b;
-    accent-color: #f0c293;
-  }
-`;
-
 // NotesEditor component
 interface NotesEditorProps {
   isOpen: boolean;
@@ -262,7 +76,6 @@ interface NotesEditorProps {
 }
 
 const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
-  const [isSaving, setIsSaving] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [content, setContent] = useState<string>(defaultContent);
   const [mounted, setMounted] = useState(false);
@@ -319,29 +132,23 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
   }, [isOpen, editor]);
 
   // Debounced save function to prevent excessive saves
-  const debouncedSave = useCallback(
-    debounce(async (newContent: string) => {
-      try {
-        setSavingStatus('saving');
-        await saveUserNotes(newContent);
-        setSavingStatus('saved');
-      } catch (error) {
-        console.error('Failed to save notes:', error);
-        setSavingStatus('unsaved');
-      }
-    }, 1000),
-    []
-  );
+  const debouncedSave = debounce(async (newContent: string) => {
+    try {
+      setSavingStatus('saving');
+      await saveUserNotes(newContent);
+      setSavingStatus('saved');
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+      setSavingStatus('unsaved');
+    }
+  }, 1000);
 
   // Handle content changes and trigger save
-  const handleContentChange = useCallback(
-    (newContent: string) => {
-      setContent(newContent);
-      setSavingStatus('unsaved');
-      debouncedSave(newContent);
-    },
-    [debouncedSave]
-  );
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    setSavingStatus('unsaved');
+    debouncedSave(newContent);
+  };
 
   // Export handlers
   const handleExportHTML = () => {
@@ -391,10 +198,10 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
     URL.revokeObjectURL(url);
   };
 
-  // Toggle fullscreen mode
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
+  // Toggle fullscreen mode - wrapped in useCallback
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen(prev => !prev);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -425,7 +232,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, isFullscreen, content, debouncedSave, onClose]);
+  }, [isOpen, isFullscreen, content, debouncedSave, onClose, toggleFullscreen]);
 
   // Don't render anything if the editor is not open
   if (!isOpen || !mounted) return null;
@@ -497,7 +304,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
           isActive={editor.isActive('bulletList')}
           title="Bullet List"
         >
-          <List className="h-4 w-4" />
+          <ListIcon className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
@@ -675,7 +482,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
                     isActive={editor.isActive('bulletList')}
                     title="Bullet List"
                   >
-                    <List className="h-4 w-4" />
+                    <ListIcon className="h-4 w-4" />
                   </MenuButton>
                   
                   <MenuButton
