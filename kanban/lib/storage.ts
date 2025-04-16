@@ -18,6 +18,7 @@ export interface Feature {
     url: string;
     style: string;
     seed: number;
+    bgColor?: string;
   };
 }
 
@@ -47,6 +48,10 @@ export const getUserFeatures = (userId: string): Feature[] => {
   const storedFeatures = localStorage.getItem(key);
   
   if (!storedFeatures) {
+    // Background colors for emojis
+    const bgColors = ['714033', 'c07f50', 'eaad80'];
+    const getRandomBgColor = () => bgColors[Math.floor(Math.random() * bgColors.length)];
+    
     // Initialize with example features for demo purposes
     const initialFeatures = exampleFeatures.map(feature => ({
       ...feature,
@@ -54,8 +59,8 @@ export const getUserFeatures = (userId: string): Feature[] => {
       endAt: new Date(feature.endAt),
       // Add default emoji for example features
       emoji: {
-        url: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${Math.floor(Math.random() * 100) + 1}&backgroundColor=transparent&radius=50`,
-        style: 'fun-emoji', 
+        url: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${Math.floor(Math.random() * 100) + 1}&backgroundColor=${getRandomBgColor()}&radius=50`,
+        style: 'adventurer-neutral', 
         seed: Math.floor(Math.random() * 100) + 1
       }
     }));
