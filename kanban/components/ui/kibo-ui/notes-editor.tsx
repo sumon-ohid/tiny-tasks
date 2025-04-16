@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, forwardRef } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useRef } from 'react';
 import { getUserNotes, saveUserNotes } from '@/lib/storage';
 import type { Notes } from '@/lib/storage';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,9 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { X, Bold, Italic, List, ListOrdered, CheckSquare, Quote, Code, Heading1, Heading2, Heading3, Image, FileText, Table } from 'lucide-react';
+import * as ReactDOM from 'react-dom/client';
 
 // Tiptap imports
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
@@ -41,29 +44,25 @@ const defaultContent = '<h1>Notes</h1><p>Start typing your notes here...</p>';
 // Menu button component for toolbar
 interface MenuButtonProps {
   onClick: () => void;
-  active?: boolean;
+  isActive?: boolean;
   disabled?: boolean;
   children: React.ReactNode;
   title?: string;
 }
 
 const MenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(
-  ({ onClick, active = false, disabled = false, children, title }, ref) => {
+  ({ onClick, isActive = false, disabled = false, children, title }, ref) => {
     return (
       <button
         ref={ref}
         onClick={onClick}
         disabled={disabled}
         title={title}
-        className={`p-2 rounded-md transition-colors ${
-          active
-            ? "bg-[#e9a959] dark:bg-[#503f2f] text-white"
-            : "hover:bg-[#e9a959]/40 dark:hover:bg-[#503f2f]/40"
-        } ${
-          disabled
-            ? "opacity-30 cursor-not-allowed"
-            : "cursor-pointer"
-        } focus:outline-none focus:ring-2 focus:ring-[#8a5a2a] dark:focus:ring-[#f0c293]`}
+        className={`p-2 rounded-md text-[#37352f] dark:text-[#e6e6e6] transition-colors duration-200 ${
+          isActive
+            ? "bg-[#f5f5f4] dark:bg-gray-700 text-[#37352f] dark:text-white"
+            : "hover:bg-[#f5f5f4] dark:hover:bg-gray-700 hover:text-[#37352f] dark:hover:text-white"
+        }`}
       >
         {children}
       </button>
@@ -83,12 +82,12 @@ const editorStyles = `
     overflow-y: auto;
     color: #4b5563;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: white;
+    background-color: #eaad80;
   }
 
   .dark .ProseMirror {
-    background-color: #1e293b;
-    color: #e2e8f0;
+    background-color: #191919;
+    color: #e6e6e6;
   }
 
   .ProseMirror:focus {
@@ -109,7 +108,7 @@ const editorStyles = `
   }
 
   .dark .ProseMirror h1 {
-    color: #f8fafc;
+    color: #e6e6e6;
   }
 
   .ProseMirror h2 {
@@ -122,7 +121,7 @@ const editorStyles = `
   }
 
   .dark .ProseMirror h2 {
-    color: #f8fafc;
+    color: #e6e6e6;
   }
 
   .ProseMirror h3 {
@@ -135,7 +134,7 @@ const editorStyles = `
   }
 
   .dark .ProseMirror h3 {
-    color: #f8fafc;
+    color: #e6e6e6;
   }
 
   .ProseMirror ul {
@@ -267,6 +266,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [content, setContent] = useState<string>(defaultContent);
   const [mounted, setMounted] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
 
   // Initialize the editor with extensions
   const editor = useEditor({
@@ -277,7 +277,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
         },
       }),
       Placeholder.configure({
-        placeholder: 'Start typing your notes here...',
+        placeholder: 'Start typing for Notion-like editing...',
       }),
       Typography,
       TaskList,
@@ -322,12 +322,12 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
   const debouncedSave = useCallback(
     debounce(async (newContent: string) => {
       try {
-        setIsSaving(true);
+        setSavingStatus('saving');
         await saveUserNotes(newContent);
+        setSavingStatus('saved');
       } catch (error) {
         console.error('Failed to save notes:', error);
-      } finally {
-        setIsSaving(false);
+        setSavingStatus('unsaved');
       }
     }, 1000),
     []
@@ -337,6 +337,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
   const handleContentChange = useCallback(
     (newContent: string) => {
       setContent(newContent);
+      setSavingStatus('unsaved');
       debouncedSave(newContent);
     },
     [debouncedSave]
@@ -426,39 +427,35 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, isFullscreen, content, debouncedSave, onClose]);
 
-  // Custom toolbar component
-  const EditorToolbar = () => {
+  // Don't render anything if the editor is not open
+  if (!isOpen || !mounted) return null;
+
+  // Render the toolbar
+  const renderToolbar = () => {
     if (!editor) return null;
 
     return (
-      <div className="flex flex-wrap items-center p-2 border-b border-[#e9d9c3] dark:border-[#3a2e22] bg-[#f9ecd9] dark:bg-[#2c2517] overflow-x-auto">
+      <div className="flex flex-wrap items-center p-2 border-b border-[#e6e6e6] bg-white dark:bg-[#191919] dark:border-gray-700 overflow-x-auto">
         <MenuButton
           onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive('bold')}
-          title="Bold (Ctrl+B)"
+          isActive={editor.isActive('bold')}
+          title="Bold"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-          </svg>
+          <Bold className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive('italic')}
-          title="Italic (Ctrl+I)"
+          isActive={editor.isActive('italic')}
+          title="Italic"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="4" x2="10" y2="4"></line>
-            <line x1="14" y1="20" x2="5" y2="20"></line>
-            <line x1="15" y1="4" x2="9" y2="20"></line>
-          </svg>
+          <Italic className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive('strike')}
-          title="Strikethrough (Ctrl+Shift+X)"
+          isActive={editor.isActive('strike')}
+          title="Strikethrough"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -467,118 +464,82 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
           </svg>
         </MenuButton>
         
-        <div className="w-px h-6 mx-2 bg-[#e9d9c3] dark:bg-[#3a2e22]"></div>
+        <div className="w-px h-6 mx-2 bg-[#e6e6e6] dark:bg-[#3a2e22]"></div>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          active={editor.isActive('heading', { level: 1 })}
+          isActive={editor.isActive('heading', { level: 1 })}
           title="Heading 1"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 12h16"></path>
-            <path d="M4 6h8"></path>
-            <path d="M4 18h8"></path>
-          </svg>
+          <Heading1 className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          active={editor.isActive('heading', { level: 2 })}
+          isActive={editor.isActive('heading', { level: 2 })}
           title="Heading 2"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 12h10"></path>
-            <path d="M4 6h6"></path>
-            <path d="M4 18h6"></path>
-          </svg>
+          <Heading2 className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          active={editor.isActive('heading', { level: 3 })}
+          isActive={editor.isActive('heading', { level: 3 })}
           title="Heading 3"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 12h8"></path>
-            <path d="M4 6h4"></path>
-            <path d="M4 18h4"></path>
-          </svg>
+          <Heading3 className="h-4 w-4" />
         </MenuButton>
         
-        <div className="w-px h-6 mx-2 bg-[#e9d9c3] dark:bg-[#3a2e22]"></div>
+        <div className="w-px h-6 mx-2 bg-[#e6e6e6] dark:bg-[#3a2e22]"></div>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive('bulletList')}
+          isActive={editor.isActive('bulletList')}
           title="Bullet List"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="9" y1="6" x2="20" y2="6"></line>
-            <line x1="9" y1="12" x2="20" y2="12"></line>
-            <line x1="9" y1="18" x2="20" y2="18"></line>
-            <circle cx="5" cy="6" r="2"></circle>
-            <circle cx="5" cy="12" r="2"></circle>
-            <circle cx="5" cy="18" r="2"></circle>
-          </svg>
+          <List className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive('orderedList')}
+          isActive={editor.isActive('orderedList')}
           title="Ordered List"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="10" y1="6" x2="21" y2="6"></line>
-            <line x1="10" y1="12" x2="21" y2="12"></line>
-            <line x1="10" y1="18" x2="21" y2="18"></line>
-            <path d="M4 6h1v4"></path>
-            <path d="M4 10h2"></path>
-            <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
-          </svg>
+          <ListOrdered className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleTaskList().run()}
-          active={editor.isActive('taskList')}
+          isActive={editor.isActive('taskList')}
           title="Task List"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="5" width="4" height="4" rx="1"></rect>
-            <path d="M9 5h12"></path>
-            <rect x="3" y="15" width="4" height="4" rx="1"></rect>
-            <path d="M9 15h12"></path>
-          </svg>
+          <CheckSquare className="h-4 w-4" />
         </MenuButton>
         
-        <div className="w-px h-6 mx-2 bg-[#e9d9c3] dark:bg-[#3a2e22]"></div>
+        <div className="w-px h-6 mx-2 bg-[#e6e6e6] dark:bg-[#3a2e22]"></div>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive('blockquote')}
+          isActive={editor.isActive('blockquote')}
           title="Blockquote"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17.39 7.64C12.92 7.64 12.89 13 12.89 13v6.67h5.33V13s0-1.3 1.3-1.3S21.78 13 21.78 13v-1.95s0-3.41-4.39-3.41zM5.89 7.64C1.42 7.64 1.39 13 1.39 13v6.67h5.33V13s0-1.3 1.3-1.3 2.26 1.3 2.26 1.3v-1.95s0-3.41-4.39-3.41z"></path>
-          </svg>
+          <Quote className="h-4 w-4" />
         </MenuButton>
         
         <MenuButton
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          active={editor.isActive('codeBlock')}
+          isActive={editor.isActive('codeBlock')}
           title="Code Block"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
+          <Code className="h-4 w-4" />
         </MenuButton>
         
-        <div className="w-px h-6 mx-2 bg-[#e9d9c3] dark:bg-[#3a2e22]"></div>
+        <div className="w-px h-6 mx-2 bg-[#e6e6e6] dark:bg-[#3a2e22]"></div>
         
         <MenuButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          title="Undo (Ctrl+Z)"
+          title="Undo"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 7v6h6"></path>
@@ -589,7 +550,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
         <MenuButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          title="Redo (Ctrl+Shift+Z)"
+          title="Redo"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 7v6h-6"></path>
@@ -600,106 +561,353 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
     );
   };
 
-  // Don't render anything if the editor is not open
-  if (!isOpen || !mounted) return null;
-
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className={`relative flex flex-col w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl ${
-            isFullscreen ? 'h-full' : 'h-[85vh]'
-          }`}
-        >
-          <Card className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[#e9d9c3] dark:border-[#3a2e22] bg-[#f9ecd9] dark:bg-[#2c2517] text-[#5a3e2b] dark:text-[#f0c293]">
-              <h2 className="text-lg font-medium">Notes</h2>
-              <div className="flex items-center space-x-2">
-                {isSaving ? (
-                  <span className="text-xs text-[#a67c52] dark:text-[#f0c293] animate-pulse">
-                    Saving...
-                  </span>
-                ) : (
-                  <span className="text-xs text-[#a67c52] dark:text-[#f0c293]">
-                    Saved
-                  </span>
-                )}
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-1 rounded-md hover:bg-[#e9a959]/20 dark:hover:bg-[#503f2f]/30 focus:outline-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="min-w-[180px] bg-[#f9ecd9] dark:bg-[#2c2517] text-[#5a3e2b] dark:text-[#f0c293] border-[#e9d9c3] dark:border-[#3a2e22]">
-                    <DropdownMenuLabel>Export as</DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-[#e9d9c3] dark:bg-[#3a2e22]" />
-                    <DropdownMenuItem onClick={handleExportHTML} className="hover:bg-[#e9a959]/20 dark:hover:bg-[#503f2f]/30 cursor-pointer">HTML</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleExportText} className="hover:bg-[#e9a959]/20 dark:hover:bg-[#503f2f]/30 cursor-pointer">Plain Text</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleExportMarkdown} className="hover:bg-[#e9a959]/20 dark:hover:bg-[#503f2f]/30 cursor-pointer">Markdown</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-1 rounded-md hover:bg-[#e9a959]/20 dark:hover:bg-[#503f2f]/30 focus:outline-none"
-                  title={isFullscreen ? "Exit Fullscreen (F11)" : "Fullscreen (F11)"}
-                >
-                  {isFullscreen ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V6m3 9V6m3 9H6m3 3h6" />
-                    </svg>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", duration: 0.3 }}
+            className="w-full max-w-5xl h-[90vh]"
+          >
+            <Card className="flex flex-col h-full overflow-hidden">
+              <div className="flex justify-between items-center p-4 border-b border-[#e6e6e6] bg-white dark:bg-[#191919] dark:border-gray-700">
+                <h2 className="text-lg font-medium text-[#37352f] dark:text-[#e6e6e6]">Notes</h2>
+                <div className="flex items-center space-x-2">
+                  {savingStatus === 'saving' ? (
+                    <span className="text-xs text-[#64635c] dark:text-[#a3a29e] animate-pulse">
+                      Saving...
+                    </span>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
+                    <span className="text-xs text-[#64635c] dark:text-[#a3a29e]">
+                      {savingStatus === 'saved' ? 'Saved' : 'Unsaved changes'}
+                    </span>
                   )}
-                </button>
-                
-                <button
-                  onClick={onClose}
-                  className="p-1 rounded-md hover:bg-[#e9a959]/20 dark:hover:bg-[#503f2f]/30 focus:outline-none"
-                  title="Close (Esc)"
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1 rounded-md hover:bg-[#f5f5f4] dark:hover:bg-gray-700 transition-colors focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="min-w-[180px] bg-white dark:bg-[#202020] text-[#37352f] dark:text-[#e6e6e6] border-[#e6e6e6] dark:border-[#303030]">
+                      <DropdownMenuLabel>Export as</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-[#e6e6e6] dark:bg-[#303030]" />
+                      <DropdownMenuItem onClick={handleExportHTML} className="hover:bg-[#f5f5f4] dark:hover:bg-[#2c2c2c] cursor-pointer">HTML</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleExportText} className="hover:bg-[#f5f5f4] dark:hover:bg-[#2c2c2c] cursor-pointer">Plain Text</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleExportMarkdown} className="hover:bg-[#f5f5f4] dark:hover:bg-[#2c2c2c] cursor-pointer">Markdown</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-1 rounded-md hover:bg-[#f5f5f4] dark:hover:bg-gray-700 transition-colors focus:outline-none"
+                    title={isFullscreen ? "Exit Fullscreen (F11)" : "Fullscreen (F11)"}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {isFullscreen ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-18h2a2 2 0 012 2v2M16 4h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2v-2" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6m0 0v6m0-6l-6 6M9 21H3m0 0v-6m0 6l6-6" />
+                      )}
+                    </svg>
+                  </button>
+                  
+                  <button
+                    onClick={onClose}
+                    className="p-1 rounded-md hover:bg-[#f5f5f4] dark:hover:bg-gray-700 transition-colors focus:outline-none"
+                    title="Close (Esc)"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {renderToolbar()}
+              
+              {/* Tiptap editor with bubble menu */}
+              {editor && (
+                <BubbleMenu 
+                  editor={editor} 
+                  tippyOptions={{ duration: 150 }}
+                  className="bg-white dark:bg-[#202020] shadow-lg rounded-md p-1 flex items-center border border-[#e6e6e6] dark:border-[#303030]"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    isActive={editor.isActive('bold')}
+                    title="Bold"
+                  >
+                    <Bold className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    isActive={editor.isActive('italic')}
+                    title="Italic"
+                  >
+                    <Italic className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                    isActive={editor.isActive('heading', { level: 1 })}
+                    title="Heading 1"
+                  >
+                    <Heading1 className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                    isActive={editor.isActive('heading', { level: 2 })}
+                    title="Heading 2"
+                  >
+                    <Heading2 className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    isActive={editor.isActive('bulletList')}
+                    title="Bullet List"
+                  >
+                    <List className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                    isActive={editor.isActive('orderedList')}
+                    title="Numbered List"
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleTaskList().run()}
+                    isActive={editor.isActive('taskList')}
+                    title="Task List"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                    isActive={editor.isActive('blockquote')}
+                    title="Blockquote"
+                  >
+                    <Quote className="h-4 w-4" />
+                  </MenuButton>
+                  
+                  <MenuButton
+                    onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                    isActive={editor.isActive('codeBlock')}
+                    title="Code Block"
+                  >
+                    <Code className="h-4 w-4" />
+                  </MenuButton>
+                </BubbleMenu>
+              )}
+              
+              <style jsx global>{`
+                .ProseMirror {
+                  min-height: 500px;
+                  padding: 2rem;
+                  overflow-y: auto;
+                  background-color: white;
+                  color: #37352f;
+                  line-height: 1.5;
+                }
+                
+                .dark .ProseMirror {
+                  background-color: #191919;
+                  color: #e6e6e6;
+                }
+                
+                .ProseMirror:focus {
+                  outline: none;
+                }
+                
+                .ProseMirror p.is-editor-empty:first-child::before {
+                  content: attr(data-placeholder);
+                  float: left;
+                  color: #adb5bd;
+                  pointer-events: none;
+                  height: 0;
+                }
+                
+                .ProseMirror h1 {
+                  font-size: 1.875rem;
+                  font-weight: 600;
+                  margin-top: 1.5rem;
+                  margin-bottom: 0.75rem;
+                  color: #37352f;
+                }
+                
+                .dark .ProseMirror h1 {
+                  color: #e6e6e6;
+                }
+                
+                .ProseMirror h2 {
+                  font-size: 1.5rem;
+                  font-weight: 600;
+                  margin-top: 1.25rem;
+                  margin-bottom: 0.75rem;
+                  color: #37352f;
+                }
+                
+                .dark .ProseMirror h2 {
+                  color: #e6e6e6;
+                }
+                
+                .ProseMirror h3 {
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin-top: 1rem;
+                  margin-bottom: 0.5rem;
+                  color: #37352f;
+                }
+                
+                .dark .ProseMirror h3 {
+                  color: #e6e6e6;
+                }
+                
+                /* Improve spacing and styles for a more Notion-like feel */
+                .ProseMirror p {
+                  margin-bottom: 0.25rem;
+                  min-height: 1.5em;
+                }
+                
+                .ProseMirror ul, .ProseMirror ol {
+                  padding-left: 1.5rem;
+                  margin-bottom: 0.5rem;
+                }
+                
+                .ProseMirror blockquote {
+                  border-left: 3px solid #e6e6e6;
+                  padding-left: 1rem;
+                  color: #64635c;
+                  margin: 0.5rem 0;
+                }
+                
+                .dark .ProseMirror blockquote {
+                  border-left-color: #3a3a3a;
+                  color: #a3a29e;
+                }
+                
+                .ProseMirror code {
+                  font-family: var(--font-geist-mono);
+                  background-color: #f5f5f4;
+                  padding: 0.2rem 0.4rem;
+                  border-radius: 0.25rem;
+                  font-size: 0.875rem;
+                  color: #37352f;
+                }
+                
+                .dark .ProseMirror code {
+                  background-color: #2c2c2c;
+                  color: #e6e6e6;
+                }
+                
+                .ProseMirror pre {
+                  background-color: #f5f5f4;
+                  padding: 0.75rem;
+                  border-radius: 0.25rem;
+                  overflow-x: auto;
+                  margin: 0.5rem 0;
+                }
+                
+                .dark .ProseMirror pre {
+                  background-color: #2c2c2c;
+                }
+                
+                .ProseMirror pre code {
+                  background-color: transparent;
+                  padding: 0;
+                  color: #37352f;
+                }
+                
+                .dark .ProseMirror pre code {
+                  color: #e6e6e6;
+                }
+                
+                /* Task list styling more like Notion */
+                .ProseMirror ul[data-type="taskList"] {
+                  list-style-type: none;
+                  padding-left: 0.125rem;
+                }
+                
+                .ProseMirror ul[data-type="taskList"] li {
+                  display: flex;
+                  align-items: flex-start;
+                  margin-bottom: 0.5rem;
+                }
+                
+                .ProseMirror ul[data-type="taskList"] li > label {
+                  margin-right: 0.5rem;
+                  display: flex;
+                  align-items: center;
+                  cursor: pointer;
+                }
+                
+                .ProseMirror ul[data-type="taskList"] li > div {
+                  flex: 1 1 auto;
+                }
+                
+                .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
+                  cursor: pointer;
+                  height: 1rem;
+                  width: 1rem;
+                  margin: 0;
+                  margin-right: 0.5rem;
+                  border-radius: 0.25rem;
+                  border: 1px solid #d1d5db;
+                  background-color: #ffffff;
+                  transition: all 0.2s ease;
+                }
+                
+                .dark .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
+                  border-color: #4b5563;
+                  background-color: #2c2c2c;
+                }
+                
+                .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div p {
+                  color: #a3a29e;
+                  text-decoration: line-through;
+                }
+              `}</style>
+              
+              <div className="flex-1 overflow-auto">
+                <EditorContent editor={editor} className="h-full" />
               </div>
-            </div>
-            
-            <EditorToolbar />
-            
-            <style jsx global>{editorStyles}</style>
-            
-            <div className="flex-1 overflow-auto">
-              <EditorContent editor={editor} className="h-full" />
-            </div>
-            
-            <div className="flex items-center justify-between p-2 text-xs text-[#a67c52] dark:text-[#d4a97a] border-t border-[#e9d9c3] dark:border-[#3a2e22] bg-[#f9ecd9] dark:bg-[#2c2517]">
-              <div>
-                {editor && (
-                  <>
-                    <span>{editor.storage.characterCount.words()} words</span>
-                    <span className="mx-2">•</span>
-                    <span>{editor.storage.characterCount.characters()} characters</span>
-                  </>
-                )}
+              
+              <div className="flex items-center justify-between p-2 text-xs text-[#64635c] dark:text-[#a3a29e] border-t border-[#e6e6e6] bg-white dark:bg-[#191919] dark:border-gray-700">
+                <div>
+                  {editor && (
+                    <div className="flex items-center gap-4">
+                      <span>
+                        {editor.storage.characterCount.characters()} characters
+                      </span>
+                      <span>
+                        {editor.storage.characterCount.words()} words
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>
+                    {savingStatus === 'saving' ? "Saving..." : savingStatus === 'saved' ? "All changes saved" : "Unsaved changes"}
+                  </span>
+                  <span className="px-1 py-0.5 bg-muted text-muted-foreground rounded text-xs">Ctrl+S</span>
+                </div>
               </div>
-              <div>
-                <span className="mr-2">Ctrl+S: Save</span>
-                <span>F11: Fullscreen</span>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
+            </Card>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };
