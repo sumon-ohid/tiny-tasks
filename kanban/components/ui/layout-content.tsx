@@ -3,7 +3,6 @@
 import React from 'react';
 import { AuthProvider } from '@/lib/auth';
 import { ThemeProvider } from '@/components/ui/kibo-ui/theme-provider';
-import { UserProfile } from './kibo-ui/user-profile';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 

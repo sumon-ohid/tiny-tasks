@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
-import type { Feature } from '@/lib/storage';
+import type { Feature } from '@/lib/content-provider';
 import Image from 'next/image';
 
 type TaskDetailProps = {
@@ -167,7 +167,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                           {format(
                             task.startAt instanceof Date 
                               ? task.startAt 
-                              : new Date(task.startAt),
+                              : new Date(task.startAt || Date.now()),
                             'MMM d, yyyy'
                           )}
                         </div>
@@ -181,7 +181,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                           {format(
                             task.endAt instanceof Date 
                               ? task.endAt 
-                              : new Date(task.endAt),
+                              : new Date(task.endAt || Date.now()),
                             'MMM d, yyyy'
                           )}
                         </div>

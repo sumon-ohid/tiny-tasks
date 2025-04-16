@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import type { Feature } from '@/lib/storage';
+import type { Feature } from '@/lib/content-provider';
 
 type ContextMenuProps = {
   task: Feature;

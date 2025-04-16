@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/kibo-ui/theme-provider";
+import { AuthProvider } from "@/lib/auth";
+import { ContentProvider } from "@/lib/content-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,9 +45,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full flex flex-col bg-gradient-to-b from-background to-background/95`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="flex flex-col min-h-screen">
-            {children}
-          </div>
+          <AuthProvider>
+            <ContentProvider>
+              <div className="flex flex-col min-h-screen">
+                {children}
+              </div>
+            </ContentProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

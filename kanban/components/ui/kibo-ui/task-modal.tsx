@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { exampleStatuses } from '@/lib/content';
 import { generateId } from '@/lib/storage';
-import type { Feature } from '@/lib/storage';
+import type { Feature } from '@/lib/content-provider';
 import { addDays, isAfter, format } from 'date-fns';
 import { EmojiPicker } from './emoji-picker';
 
@@ -51,8 +51,8 @@ export const TaskModal = ({ task, onSave, onCancel }: TaskModalProps) => {
       setName(task.name || '');
       setDescription(task.description || '');
       setStatusId(task.status.id || exampleStatuses[0].id);
-      setStartDate(task.startAt instanceof Date ? task.startAt : new Date(task.startAt));
-      setEndDate(task.endAt instanceof Date ? task.endAt : new Date(task.endAt));
+      setStartDate(task.startAt instanceof Date ? task.startAt : new Date(task.startAt || Date.now()));
+      setEndDate(task.endAt instanceof Date ? task.endAt : new Date(task.endAt || Date.now()));
       setInitiative(task.initiative?.name || '');
       setEmoji(task.emoji);
     }
@@ -147,7 +147,7 @@ export const TaskModal = ({ task, onSave, onCancel }: TaskModalProps) => {
             <div className="flex gap-3 items-start">
               <EmojiPicker 
                 onSelect={setEmoji} 
-                currentEmoji={emoji}
+                currentEmoji={emoji ? { url: emoji.url, style: emoji.style || "adventurer-neutral", seed: emoji.seed || 1, bgColor: undefined } : null}
               />
               
               <div className="space-y-2 flex-1">

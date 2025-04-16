@@ -1,87 +1,59 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from 'date-fns';
+import { useState, useMemo, useCallback } from 'react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
 import { AuthProvider, useAuthContext } from '@/lib/auth';
-import { getUserFeatures, type Feature } from '@/lib/storage';
+import { useContentContext, type Feature } from '@/lib/content-provider';
 import { LoginModal } from '@/components/ui/kibo-ui/login-modal';
 import { Nav } from '@/components/ui/kibo-ui/nav';
-import { UserProfile } from '@/components/ui/kibo-ui/user-profile';
 import { TaskModal } from '@/components/ui/kibo-ui/task-modal';
 import { TaskDetail } from '@/components/ui/kibo-ui/task-detail';
 import { Card } from '@/components/ui/card';
 import { Toaster, toast } from 'sonner';
-import Image from 'next/image';
 
 const CalendarPageContent = () => {
   const { user } = useAuthContext();
-  const [features, setFeatures] = useState<Feature[]>([]);
+  const { features, isLoading: isContentLoading, statuses, setFeatures } = useContentContext();
+  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+  const [selectedDate] = useState<Date | undefined>(new Date());
   const [selectedTask, setSelectedTask] = useState<Feature | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Feature | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentMonth, setCurrentMonth] = useState(format(currentDate, 'MMM'));
-  const [currentYear, setCurrentYear] = useState(format(currentDate, 'yyyy'));
-  
-  // Generate days for the current month view
-  const getDaysInMonth = () => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const startDate = monthStart;
-    const endDate = monthEnd;
-    
-    return eachDayOfInterval({ start: startDate, end: endDate });
-  };
-  
-  // Get the start day of month (0 = Sunday, 1 = Monday, etc.)
-  const getStartDayOfMonth = () => {
-    return getDay(startOfMonth(currentDate));
-  };
-  
-  // Get all days to display including empty slots for proper grid layout
-  const getAllDaysInGrid = () => {
-    const days = getDaysInMonth();
-    const startDay = getStartDayOfMonth();
-    
-    // Create empty slots for days before the 1st of the month
-    const emptySlotsAtStart = Array(startDay).fill(null);
-    
-    // Calculate how many empty slots needed at the end to make a complete grid
-    // Grid should have 6 rows (42 cells) for consistent month view
-    const totalCellsNeeded = 42;
-    const emptySlotsAtEnd = Array(totalCellsNeeded - (emptySlotsAtStart.length + days.length)).fill(null);
-    
-    return [...emptySlotsAtStart, ...days, ...emptySlotsAtEnd];
-  };
-  
-  // Load features for the logged in user
-  useEffect(() => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    const userFeatures = getUserFeatures(user.id);
-    setFeatures(userFeatures);
-    setIsLoading(false);
-  }, [user]);
-  
+
+  // Calculate days in month, etc.
+  const firstDayOfMonth = startOfMonth(currentMonth);
+  const lastDayOfMonth = endOfMonth(currentMonth);
+  const daysInMonth = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
+
+  // Group features by date - Handle potentially undefined dates
+  const featuresByDate = useMemo(() => {
+    const grouped: { [key: string]: Feature[] } = {};
+    features.forEach(feature => {
+      // Use startAt for grouping, ensure it's a valid Date
+      if (feature.startAt instanceof Date) {
+        const dateKey = format(feature.startAt, 'yyyy-MM-dd');
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey].push(feature);
+      }
+    });
+    return grouped;
+  }, [features]);
+
   // Navigate to previous month
   const goToPreviousMonth = () => {
-    const previousMonth = new Date(currentDate);
+    const previousMonth = new Date(currentMonth);
     previousMonth.setMonth(previousMonth.getMonth() - 1);
-    setCurrentDate(previousMonth);
-    setCurrentMonth(format(previousMonth, 'MMM'));
-    setCurrentYear(format(previousMonth, 'yyyy'));
+    setCurrentMonth(previousMonth);
   };
   
   // Navigate to next month
   const goToNextMonth = () => {
-    const nextMonth = new Date(currentDate);
+    const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
-    setCurrentDate(nextMonth);
-    setCurrentMonth(format(nextMonth, 'MMM'));
-    setCurrentYear(format(nextMonth, 'yyyy'));
+    setCurrentMonth(nextMonth);
   };
   
   // Toggle task modal for creating new tasks
@@ -95,35 +67,51 @@ const CalendarPageContent = () => {
     if (!day) return [];
     
     return features.filter(feature => {
-      const taskDate = new Date(feature.endAt);
-      return (
-        taskDate.getDate() === day.getDate() &&
-        taskDate.getMonth() === day.getMonth() &&
-        taskDate.getFullYear() === day.getFullYear()
-      );
+      // Only compare if feature.endAt is a valid Date
+      if (feature.endAt instanceof Date) {
+        const taskDate = feature.endAt; // Already a Date object
+        return (
+          taskDate.getDate() === day.getDate() &&
+          taskDate.getMonth() === day.getMonth() &&
+          taskDate.getFullYear() === day.getFullYear()
+        );
+      }
+      return false; // Skip features without a valid end date
     });
   };
   
   // Handle task creation/editing
-  const handleSaveTask = (task: Feature) => {
-    if (!user) return;
-    
-    let updatedFeatures;
-    
+  const handleSaveTask = useCallback((taskData: Partial<Feature>) => {
     if (editingTask) {
-      updatedFeatures = features.map(feature => 
-        feature.id === task.id ? task : feature
+      setFeatures(prevFeatures => 
+        prevFeatures.map(feature => 
+          feature.id === editingTask.id ? { ...feature, ...taskData } : feature
+        )
       );
-      toast.success(`Task "${task.name}" updated`);
+      toast.success(`Task "${taskData.name || editingTask.name}" updated`);
     } else {
-      updatedFeatures = [...features, task];
-      toast.success(`Task "${task.name}" created`);
+      const defaultStatus = statuses[0] || { id: 'todo', name: 'To Do', color: '#6B7280' };
+      const newTask: Feature = {
+        id: `task_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        name: taskData.name || 'New Task',
+        status: taskData.status || defaultStatus,
+        description: taskData.description,
+        // Ensure startAt is set, default to selectedDate (if defined) or today
+        startAt: taskData.startAt || (selectedDate instanceof Date ? selectedDate : new Date()), 
+        endAt: taskData.endAt,
+        owner: taskData.owner,
+        group: taskData.group,
+        product: taskData.product,
+        initiative: taskData.initiative,
+        release: taskData.release,
+        emoji: taskData.emoji,
+      };
+      setFeatures(prevFeatures => [...prevFeatures, newTask]);
+      toast.success(`Task "${newTask.name}" created`);
     }
-    
-    setFeatures(updatedFeatures);
     setIsTaskModalOpen(false);
     setEditingTask(undefined);
-  };
+  }, [editingTask, setFeatures, statuses, selectedDate]);
   
   // Handle opening task detail
   const handleOpenTaskDetail = (task: Feature) => {
@@ -141,17 +129,14 @@ const CalendarPageContent = () => {
   };
   
   // Handle deleting a task
-  const handleDeleteTask = () => {
-    if (!user || !selectedTask) return;
-    
-    const updatedFeatures = features.filter(
-      feature => feature.id !== selectedTask.id
-    );
-    setFeatures(updatedFeatures);
+  const handleDeleteTask = useCallback(() => {
+    if (!selectedTask) return;
+    const taskName = selectedTask.name;
+    setFeatures(prevFeatures => prevFeatures.filter(f => f.id !== selectedTask.id));
     setIsTaskDetailOpen(false);
     setSelectedTask(null);
-    toast.success(`Task "${selectedTask.name}" deleted`);
-  };
+    toast.success(`Task "${taskName}" deleted`);
+  }, [selectedTask, setFeatures]);
   
   // No need to render anything if not logged in
   if (!user) {
@@ -159,7 +144,7 @@ const CalendarPageContent = () => {
   }
   
   // Skeleton loader while loading features
-  if (isLoading) {
+  if (isContentLoading) {
     return (
       <div className="flex flex-col h-screen">
         <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b gap-4">
@@ -177,7 +162,7 @@ const CalendarPageContent = () => {
   }
   
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const allDays = getAllDaysInGrid();
+  const allDays = daysInMonth;
   
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -200,8 +185,8 @@ const CalendarPageContent = () => {
         <Card className="p-6 shadow-sm overflow-hidden">
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold">{currentMonth}</h1>
-              <div className="text-2xl font-light">{currentYear}</div>
+              <h1 className="text-2xl font-bold">{format(currentMonth, 'MMM')}</h1>
+              <div className="text-2xl font-light">{format(currentMonth, 'yyyy')}</div>
               <div className="text-sm text-muted-foreground">
                 {features.length} tasks
               </div>
@@ -229,7 +214,7 @@ const CalendarPageContent = () => {
               </button>
               
               <button
-                onClick={() => setCurrentDate(new Date())}
+                onClick={() => setCurrentMonth(new Date())}
                 className="px-3 py-1 rounded-md text-sm font-medium bg-muted hover:bg-muted/80 transition-colors"
               >
                 Today
@@ -289,38 +274,16 @@ const CalendarPageContent = () => {
                       </div>
                       
                       <div className="space-y-1 overflow-y-auto flex-1">
-                        {tasksForDay.length > 0 ? (
-                          tasksForDay.map((task) => (
-                            <div 
-                              key={task.id}
-                              onClick={() => handleOpenTaskDetail(task)}
-                              className="p-1 text-xs rounded cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-1"
-                            >
-                              {task.emoji && (
-                                <div className="relative w-4 h-4 flex-shrink-0">
-                                  <Image
-                                    src={task.emoji.url}
-                                    alt=""
-                                    width={16}
-                                    height={16}
-                                    className="rounded-full"
-                                    unoptimized
-                                    onError={(e) => {
-                                      const img = e.currentTarget;
-                                      if (task.emoji && !img.src.includes('&format=png')) {
-                                        img.src = `${task.emoji.url.split('?')[0]}?seed=${task.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
-                                      } else if (task.emoji) {
-                                        // If PNG also fails, use a fallback emoji
-                                        img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              )}
-                              <div className="truncate">{task.name}</div>
-                            </div>
-                          ))
-                        ) : null}
+                        {(featuresByDate[format(day, 'yyyy-MM-dd')] || []).map(feature => (
+                          <div
+                            key={feature.id}
+                            className="text-xs p-1 rounded mb-1 cursor-pointer hover:opacity-80"
+                            style={{ backgroundColor: `${feature.status.color}40` }}
+                            onClick={() => handleOpenTaskDetail(feature)}
+                          >
+                            {feature.name}
+                          </div>
+                        ))}
                         
                         {tasksForDay.length > 3 && (
                           <div className="text-xs text-muted-foreground p-1">

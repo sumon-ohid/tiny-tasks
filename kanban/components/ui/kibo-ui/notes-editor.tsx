@@ -90,7 +90,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ isOpen, onClose }) => {
         },
       }),
       Placeholder.configure({
-        placeholder: 'Start typing for Notion-like editing...',
+        placeholder: 'Start typing for editing...',
       }),
       Typography,
       TaskList,

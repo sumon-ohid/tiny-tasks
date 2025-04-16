@@ -87,7 +87,7 @@ export const LoginHero = () => {
         >
           Welcome to{' '}
           <TextRotate
-            texts={["Tiny Tasks", "Kanban Board", "Productivity"]}
+            texts={["Tiny Tasks", "Personal Projects", "Dev Workflow"]}
             rotationInterval={2800}
             mainClassName="inline-block text-primary px-2 rounded-md bg-primary/10"
             splitLevelClassName="inline-block"
@@ -101,7 +101,7 @@ export const LoginHero = () => {
           variants={itemVariants}
           className="text-base sm:text-lg text-muted-foreground max-w-md sm:max-w-lg"
         >
-          Organize your work, streamline your projects, and boost collaboration. Select the demo user to continue.
+          Your personal space to manage projects, track ideas, and keep your developer life organized.
         </motion.p>
 
         <motion.div variants={itemVariants} className="pt-2">
@@ -117,7 +117,7 @@ export const LoginHero = () => {
                 Logging In...
               </>
             ) : (
-              `Continue as Guest`
+              `Enter Workspace`
             )}
           </Button>
         </motion.div>
