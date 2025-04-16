@@ -117,7 +117,7 @@ export const LoginHero = () => {
                 Logging In...
               </>
             ) : (
-              `Continue as ${users[0]?.name || 'Demo User'}`
+              `Continue as Guest`
             )}
           </Button>
         </motion.div>
