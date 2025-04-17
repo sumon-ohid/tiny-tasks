@@ -11,6 +11,16 @@ import { TaskDetail } from '@/components/ui/kibo-ui/task-detail';
 import { Card } from '@/components/ui/card';
 import { Toaster, toast } from 'sonner';
 
+// Add a helper function to generate emoji data
+const generateRandomEmoji = () => {
+  const seed = Math.floor(Math.random() * 1000);
+  return {
+    url: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`,
+    style: 'adventurer',
+    seed
+  };
+};
+
 const CalendarPageContent = () => {
   const { user } = useAuthContext();
   const { features, isLoading: isContentLoading, statuses, setFeatures } = useContentContext();
@@ -99,12 +109,11 @@ const CalendarPageContent = () => {
         // Ensure startAt is set, default to selectedDate (if defined) or today
         startAt: taskData.startAt || (selectedDate instanceof Date ? selectedDate : new Date()), 
         endAt: taskData.endAt,
-        owner: taskData.owner,
         group: taskData.group,
         product: taskData.product,
         initiative: taskData.initiative,
         release: taskData.release,
-        emoji: taskData.emoji,
+        emoji: taskData.emoji || generateRandomEmoji(), // Ensure emoji exists
       };
       setFeatures(prevFeatures => [...prevFeatures, newTask]);
       toast.success(`Task "${newTask.name}" created`);
@@ -298,9 +307,8 @@ const CalendarPageContent = () => {
                           const newTask: Partial<Feature> = {
                             startAt: day,
                             endAt: day,
+                            emoji: generateRandomEmoji(), // Add emoji data
                             // Add default values for other required Feature fields if necessary
-                            // e.g., id: crypto.randomUUID(), name: '', status: 'todo', etc.
-                            // Depending on what TaskModal expects. For now, just setting dates.
                           };
                           setEditingTask(newTask as Feature); // Cast to Feature, assuming TaskModal handles partial data
                           setIsTaskModalOpen(true);

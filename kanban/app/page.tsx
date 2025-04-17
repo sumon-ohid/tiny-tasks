@@ -38,6 +38,15 @@ const shortDateFormatter = new Intl.DateTimeFormat('en-US', {
   day: 'numeric'
 });
 
+// Add a helper function to generate emoji data at the top of the file
+const generateRandomEmoji = () => {
+  const seed = Math.floor(Math.random() * 1000);
+  return {
+    url: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`,
+    style: 'adventurer',
+    seed
+  };
+};
 
 // Kanban page component
 const KanbanPage = () => {
@@ -133,7 +142,7 @@ const KanbanPage = () => {
   }, [features, statuses, setFeatures]); // Depend on context state/setters
 
   // Handle task creation/update - Ensure task conforms to Feature type
-  const handleSaveTask = useCallback((taskData: Partial<Feature>) => { // Accept partial data from modal
+  const handleSaveTask = useCallback((taskData: Partial<Feature>) => {
     if (editingTask) {
       // Update existing task: merge existing with new data
       setFeatures(prevFeatures => 
@@ -153,12 +162,11 @@ const KanbanPage = () => {
         description: taskData.description,
         startAt: taskData.startAt,
         endAt: taskData.endAt,
-        owner: taskData.owner,
         group: taskData.group,
         product: taskData.product,
         initiative: taskData.initiative,
         release: taskData.release,
-        emoji: taskData.emoji,
+        emoji: taskData.emoji || generateRandomEmoji(), // Ensure emoji exists
       };
       setFeatures(prevFeatures => [...prevFeatures, newTask]);
       toast.success(`Task "${newTask.name}" created`);
