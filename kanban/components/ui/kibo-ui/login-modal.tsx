@@ -87,7 +87,7 @@ export const LoginHero = () => {
         >
           Welcome to{' '}
           <TextRotate
-            texts={["Tiny Tasks", "Personal Projects", "Dev Workflow"]}
+            texts={["Tiny Tasks"]}
             rotationInterval={2800}
             mainClassName="inline-block text-primary px-2 rounded-md bg-primary/10"
             splitLevelClassName="inline-block"
@@ -117,7 +117,7 @@ export const LoginHero = () => {
                 Logging In...
               </>
             ) : (
-              `Enter Workspace`
+              `Get Started`
             )}
           </Button>
         </motion.div>

@@ -19,8 +19,6 @@ export function PrioritySystem({ task, onUpdateTask }: PrioritySystemProps) {
   const [autoSuggestShown, setAutoSuggestShown] = useState<boolean>(false);
   const [suggestedPriority, setSuggestedPriority] = useState<'low' | 'medium' | 'high' | 'urgent' | null>(null);
 
-  // Calculate suggested priority based on various factors
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     calculateSuggestedPriority();
   }, [task]);
