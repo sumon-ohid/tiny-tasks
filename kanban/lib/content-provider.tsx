@@ -22,6 +22,26 @@ export interface Feature {
   initiative?: { id: string; name: string };          // Optional
   release?: { id: string; name: string };             // Optional
   emoji?: { url: string; style?: string; seed?: number }; 
+  // New fields for enhanced features
+  priority?: 'low' | 'medium' | 'high' | 'urgent'; // For priority system
+  timeBlocks?: Array<{ start: Date; end: Date; completed: boolean }>; // For time blocking
+  pomodoroSettings?: { workDuration: number; breakDuration: number; longBreakDuration: number; longBreakInterval: number }; // For pomodoro
+  isHabit?: boolean; // Mark if this is a recurring habit
+  habitStreak?: number; // Current streak for habits
+  habitHistory?: Array<{ date: string; completed: boolean }>; // Track habit completion
+  goalType?: 'daily' | 'weekly' | 'monthly' | 'custom'; // For goal setting
+  goalTarget?: number; // Target value for goal (e.g., number of times)
+  goalProgress?: number; // Current progress toward goal
+  focusMode?: boolean; // Is this task marked for focus mode
+  distractionList?: string[]; // List of distractions to block
+  points?: number; // Gamification points earned
+  badges?: string[]; // Earned badges
+  analytics?: { 
+    estimatedTime?: number; // Estimated time in minutes
+    actualTime?: number;   // Actual time spent in minutes
+    completedPomodoros?: number; // Number of completed pomodoro sessions
+    productivity?: number; // Productivity score (0-100)
+  };
 }
 
 // Export Marker and Status types (can be inferred or defined explicitly)

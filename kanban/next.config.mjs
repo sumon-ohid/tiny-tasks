@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   /* config options here */
   reactStrictMode: true,
   images: {
@@ -20,6 +19,8 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true,
   },
+  // Explicitly defining page extensions
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   headers: async () => {
     return [
       {
@@ -43,4 +44,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default nextConfig; 
