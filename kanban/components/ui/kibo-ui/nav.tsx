@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from './theme-toggle';
 
 // --- Icons (Consider moving to a dedicated icons file) ---
 
@@ -148,10 +149,18 @@ export function Nav() {
               active={link.activePaths.includes(pathname)}
             />
           ))}
+          
+          {/* Theme Toggle */}
+          <div className="ml-2">
+            <ThemeToggle />
+          </div>
         </nav>
 
         {/* Mobile Navigation Trigger */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+          {/* Theme Toggle for mobile */}
+          <ThemeToggle />
+          
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open menu">
@@ -177,7 +186,10 @@ export function Nav() {
                 ))}
               </nav>
               {/* Optional: Add footer or user info in mobile menu */}
-              {/* <div className="mt-auto p-4 border-t"> ... </div> */}
+              <div className="mt-auto p-4 border-t flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Theme</span>
+                <ThemeToggle />
+              </div>
             </SheetContent>
           </Sheet>
         </div>

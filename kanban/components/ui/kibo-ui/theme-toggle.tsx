@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/ui/kibo-ui/theme-provider"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -56,9 +56,9 @@ export function ThemeToggle({ className }: { className?: string }) {
             className={className}
           >
             {theme === "light" ? (
-              <SunIcon className="size-4" />
-            ) : (
               <MoonIcon className="size-4" />
+            ) : (
+              <SunIcon className="size-4" />
             )}
           </Button>
         </TooltipTrigger>
