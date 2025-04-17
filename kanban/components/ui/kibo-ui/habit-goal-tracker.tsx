@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -29,16 +29,8 @@ export function HabitGoalTracker({ task, onUpdateTask }: HabitGoalTrackerProps) 
   const [goalTarget, setGoalTarget] = useState<number>(task.goalTarget || 1);
   const [goalProgress, setGoalProgress] = useState<number>(task.goalProgress || 0);
   
-  // Calculate and update streak on initial load
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (isHabit) {
-      calculateStreak();
-    }
-  }, [isHabit]);
-
   // Calculate current streak
-  const calculateStreak = () => {
+  const calculateStreak = useCallback(() => {
     if (!habitHistory || habitHistory.length === 0) {
       setHabitStreak(0);
       return;
@@ -83,7 +75,14 @@ export function HabitGoalTracker({ task, onUpdateTask }: HabitGoalTrackerProps) 
         habitStreak: streak
       });
     }
-  };
+  }, [habitHistory, task, onUpdateTask]);
+
+  // Calculate and update streak on initial load
+  useEffect(() => {
+    if (isHabit) {
+      calculateStreak();
+    }
+  }, [isHabit, habitHistory, calculateStreak]);
 
   // Toggle today's habit completion
   const toggleTodayCompletion = () => {
@@ -124,15 +123,14 @@ export function HabitGoalTracker({ task, onUpdateTask }: HabitGoalTrackerProps) 
     onUpdateTask({
       ...task,
       habitHistory: updatedHistory,
-      habitStreak: isTodayCompleted ? habitStreak + 1 : Math.max(0, habitStreak - 1),
       goalProgress: newGoalProgress,
       points: newPoints
     });
     
     if (isTodayCompleted) {
-      toast.success(`Habit marked complete! Streak: ${habitStreak + 1} days. +10 points`);
+      toast.success(`Habit marked complete! +10 points`);
     } else {
-      toast.info(`Habit marked incomplete. Streak updated.`);
+      toast.info(`Habit marked incomplete.`);
     }
     
     // Recalculate streak after state update

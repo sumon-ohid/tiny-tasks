@@ -44,9 +44,9 @@ export function FocusMode({ task, onUpdateTask }: FocusModeProps) {
 
   // Initialize audio
   useEffect(() => {
-    if (selectedSound !== 'none') {
-      const soundUrl = getSoundUrl(selectedSound);
-      audioRef.current = new Audio(soundUrl);
+    // Create audio element for ambient sounds
+    if (typeof window !== 'undefined') {
+      audioRef.current = new Audio();
       audioRef.current.loop = true;
       audioRef.current.volume = soundVolume / 100;
     }
@@ -66,10 +66,9 @@ export function FocusMode({ task, onUpdateTask }: FocusModeProps) {
         document.exitFullscreen().catch(err => console.error(err));
       }
     };
-  }, []);
+  }, [soundVolume]);
 
   // Handle focus timer
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isFocusActive) {
       // Enter fullscreen if enabled

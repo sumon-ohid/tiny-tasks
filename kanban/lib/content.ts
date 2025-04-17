@@ -15,11 +15,6 @@ import {
     { id: 'done', name: 'Done', color: '#10B981' },
   ];
   
-  const owner = {
-    id: 'dev_1',
-    name: 'Indie Dev',
-  };
-  
   const projects = {
     saasApp: { id: 'proj_saas', name: 'My Awesome SaaS' },
     game: { id: 'proj_game', name: 'Pixel Adventure Game' },
