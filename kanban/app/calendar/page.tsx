@@ -278,7 +278,7 @@ const CalendarPageContent = () => {
                           <div
                             key={feature.id}
                             className="text-xs p-1 rounded mb-1 cursor-pointer hover:opacity-80"
-                            style={{ backgroundColor: `${feature.status.color}40` }}
+                            style={{ backgroundColor: `${feature.status?.color || '#6B7280'}40` }}
                             onClick={() => handleOpenTaskDetail(feature)}
                           >
                             {feature.name}

@@ -480,7 +480,7 @@ const KanbanPage = () => {
             {statuses.map((status) => {
               // Use filteredFeatures which depend on context features
               const statusFeatures = filteredFeatures.filter(
-                (feature) => feature.status.id === status.id
+                (feature) => feature?.status?.id === status.id
               );
               
               if (statusFeatures.length === 0) return null;
