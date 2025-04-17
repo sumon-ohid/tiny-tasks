@@ -14,6 +14,7 @@ import { TaskAnalytics } from './task-analytics';
 import { GamificationRewards } from './gamification-rewards';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type TaskDetailProps = {
   task: Feature;
@@ -68,7 +69,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
         <Card className="p-0 shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
           <div 
             className="p-6 pb-4 border-b relative"
-            style={{ backgroundColor: `${updatedTask.status.color}10` }}
+            style={{ backgroundColor: `${updatedTask.status?.color || '#6B7280'}10` }}
           >
             <div className="absolute top-4 right-4 flex gap-2">
               <button 
@@ -116,7 +117,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
               {updatedTask.emoji && (
                 <div className="relative w-12 h-12 overflow-hidden rounded-full mt-1">
                   <Image
-                    src={updatedTask.emoji.url}
+                    src={updatedTask.emoji?.url || ''}
                     alt="Task emoji"
                     width={48}
                     height={48}
@@ -126,7 +127,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                       // Try to reload with a different format if it fails
                       const img = e.currentTarget;
                       if (updatedTask.emoji && !img.src.includes('&format=png')) {
-                        img.src = `${updatedTask.emoji.url.split('?')[0]}?seed=${updatedTask.emoji.seed}&backgroundColor=transparent&radius=50&format=png`;
+                        img.src = `${updatedTask.emoji?.url?.split('?')[0] || ''}?seed=${updatedTask.emoji?.seed || '0'}&backgroundColor=transparent&radius=50&format=png`;
                       } else {
                         // If PNG also fails or emoji doesn't exist, use a fallback emoji
                         img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%23eaad80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`;
@@ -142,11 +143,11 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
               <div
                 className="px-2 py-1 text-xs font-medium rounded-full"
                 style={{ 
-                  backgroundColor: `${updatedTask.status.color}25`,
-                  color: updatedTask.status.color 
+                  backgroundColor: `${updatedTask.status?.color || '#6B7280'}25`,
+                  color: updatedTask.status?.color || '#6B7280' 
                 }}
               >
-                {updatedTask.status.name}
+                {updatedTask.status?.name || 'No Status'}
               </div>
               
               {updatedTask.priority && (
@@ -156,13 +157,13 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                   updatedTask.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' :
                   'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
                 }`}>
-                  {updatedTask.priority.charAt(0).toUpperCase() + updatedTask.priority.slice(1)} Priority
+                  {updatedTask.priority?.charAt(0).toUpperCase() + updatedTask.priority?.slice(1)} Priority
                 </div>
               )}
               
               {updatedTask.initiative && (
                 <div className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full dark:bg-blue-900/50 dark:text-blue-300">
-                  {updatedTask.initiative.name}
+                  {updatedTask.initiative?.name || 'Initiative'}
                 </div>
               )}
             </div>
@@ -238,7 +239,7 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                           <div className="p-4 bg-muted/30 rounded-lg flex items-center gap-3">
                             <div className="relative w-10 h-10 overflow-hidden rounded-full">
                               <Image
-                                src={updatedTask.emoji.url}
+                                src={updatedTask.emoji?.url || ''}
                                 alt="Task emoji"
                                 width={40}
                                 height={40}
@@ -248,10 +249,10 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                             </div>
                             <div>
                               <div className="text-sm font-medium">
-                                {updatedTask.emoji.style || 'Default Style'}
+                                {updatedTask.emoji?.style || 'Default Style'}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                Seed: {updatedTask.emoji.seed || 'Default'}
+                                Seed: {updatedTask.emoji?.seed || 'Default'}
                               </div>
                             </div>
                           </div>
@@ -261,25 +262,23 @@ export const TaskDetail = ({ task, onClose, onEdit, onDelete }: TaskDetailProps)
                       {updatedTask.owner && (
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-muted-foreground">Owner</h3>
-                          <div className="p-4 bg-muted/30 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              {updatedTask.owner.image ? (
-                                <div className="relative w-8 h-8 overflow-hidden rounded-full">
-                                  <Image
-                                    src={updatedTask.owner.image}
-                                    alt={updatedTask.owner.name}
-                                    width={32}
-                                    height={32}
-                                    className="object-cover rounded-full"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                                  {updatedTask.owner.name.charAt(0)}
-                                </div>
-                              )}
-                              <div className="font-medium">{updatedTask.owner.name}</div>
-                            </div>
+                          <div className="p-4 bg-muted/30 rounded-lg flex items-center gap-3">
+                            {updatedTask.owner?.image ? (
+                              <Avatar>
+                                <AvatarImage 
+                                  src={updatedTask.owner?.image || ''}
+                                  alt={updatedTask.owner?.name || 'User'}
+                                />
+                                <AvatarFallback>
+                                  {updatedTask.owner?.name?.charAt(0) || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-primary">{updatedTask.owner?.name?.charAt(0) || 'U'}</span>
+                              </div>
+                            )}
+                            <div className="font-medium">{updatedTask.owner?.name || 'Unknown User'}</div>
                           </div>
                         </div>
                       )}
