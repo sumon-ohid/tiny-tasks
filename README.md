@@ -1,6 +1,6 @@
-# Tiny Tasks - Modern Kanban Board
+# Tiny Tasks - Simple Kanban Board
 
-![Tiny Tasks Banner](https://placehold.co/1200x630/10B981/FFFFFF/png?text=Tiny+Tasks+Kanban+Board)
+https://github.com/user-attachments/assets/d43a1295-e5e0-4a8a-bf65-be182e1a6baa
 
 A modern, responsive Kanban board application built with Next.js and TypeScript. Manage your tasks with an intuitive drag-and-drop interface, add notes, and keep track of your workflow efficiently.
 
@@ -14,6 +14,7 @@ A modern, responsive Kanban board application built with Next.js and TypeScript.
 - **Task Management**: Create, edit, and delete tasks with detailed information
 - **User Profiles**: User authentication with personalized preferences
 - **Search Functionality**: Quickly find tasks using the search bar
+- **Calendar View**: View all the task in a calender
 
 ## 🚀 Getting Started
 
@@ -92,7 +93,7 @@ Future enhancements planned:
 - [ ] Team collaboration features
 - [ ] File attachments for tasks
 - [ ] Advanced filtering and sorting options
-- [ ] Calendar integration
+- [ ] Calendar improvement
 - [ ] Export/import functionality
 - [ ] Mobile app using React Native
 
