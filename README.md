@@ -114,6 +114,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 For support, questions, or feedback, please open an issue on the GitHub repository.
 
----
-
-Developed with ❤️ by [Your Name]
+Developed with ❤️ by Sumon
