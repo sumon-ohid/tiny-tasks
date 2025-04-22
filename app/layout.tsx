@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ui/kibo-ui/theme-provider";
 import { AuthProvider } from "@/lib/auth";
 import { ContentProvider } from "@/lib/content-provider";
+import { Analytics } from "@vercel/analytics/react"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,6 +51,7 @@ export default function RootLayout({
               <div className="flex flex-col min-h-screen">
                 {children}
               </div>
+              <Analytics />
             </ContentProvider>
           </AuthProvider>
         </ThemeProvider>
